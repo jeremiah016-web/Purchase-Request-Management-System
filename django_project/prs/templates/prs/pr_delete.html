@@ -1,0 +1,16 @@
+{% extends "prs/layout.html" %}
+{% block content %}
+    <legend class="mb-3">Delete Purchase Request</legend>
+    <div class="content-section">
+        <form method="POST">
+            {% csrf_token %}
+            <fieldset class="form-group">
+                <legend>Are you sure you want to delete the "{{ object.pr_number }}"?</legend>
+            </fieldset>
+            <div class="form-group">
+                <button class="btn btn-outline-danger" type="submit">Yes, Delete</button>
+                <a class="btn btn-outline-secondary" href="{% url 'pr-detail' object.id %}">Cancel</a>
+            </div>
+        </form>
+    </div>
+{% endblock content %}

@@ -1,0 +1,209 @@
+{% extends "prs/layout.html" %}
+{% block content %}
+
+<div class="content-card" style="max-width: 600px; margin: 0 auto;">
+    <!-- Warning Header -->
+    <div class="text-center mb-4">
+        <div style="width: 90px; height: 90px; background: linear-gradient(135deg, #f56565 0%, #c53030 100%); border-radius: 25px; display: flex; align-items: center; justify-content: center; margin: 0 auto 25px; box-shadow: 0 15px 30px rgba(245,101,101,0.3); animation: pulse 2s ease-in-out infinite;">
+            <i class="fas fa-exclamation-triangle text-white" style="font-size: 42px;"></i>
+        </div>
+        <h2 style="color: #2d3748; font-weight: 800; font-size: 32px; margin-bottom: 10px;">
+            Delete Account
+        </h2>
+        <p class="text-muted" style="font-size: 16px; max-width: 450px; margin: 0 auto;">
+            This action cannot be undone. Please confirm deletion.
+        </p>
+    </div>
+
+    <!-- Warning Card -->
+    <div style="background: #fff5f5; border-radius: 20px; padding: 30px; margin-bottom: 25px; border: 2px solid #feb2b2;">
+        <div class="d-flex align-items-start">
+            <div style="width: 50px; height: 50px; background: #fed7d7; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-right: 20px; flex-shrink: 0;">
+                <i class="fas fa-exclamation-circle" style="color: #c53030; font-size: 24px;"></i>
+            </div>
+            <div>
+                <h5 style="color: #742a2a; font-weight: 700; margin-bottom: 15px;">
+                    Warning: This action is permanent!
+                </h5>
+                <p style="color: #742a2a; margin-bottom: 10px; font-size: 15px;">
+                    Deleting your account will permanently remove:
+                </p>
+                <ul style="color: #742a2a; margin: 0; padding-left: 20px;">
+                    <li>Your profile and personal information</li>
+                    <li>All your purchase requests</li>
+                    <li>Your approval/rejection history</li>
+                    <li>All associated data</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Account Info -->
+    <div style="background: white; border-radius: 20px; padding: 25px; margin-bottom: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.03);">
+        <h5 style="color: #2d3748; font-weight: 600; margin-bottom: 20px;">
+            <i class="fas fa-user mr-2" style="color: #667eea;"></i>
+            Account Information
+        </h5>
+        
+        <div class="d-flex align-items-center mb-3">
+            <img src="{{ user.profile.image.url }}" alt="{{ user.username }}" 
+                 style="width: 60px; height: 60px; border-radius: 50%; margin-right: 20px; object-fit: cover; border: 3px solid #e2e8f0;">
+            <div>
+                <h6 style="color: #2d3748; font-weight: 600; margin-bottom: 5px;">{{ user.username }}</h6>
+                <p style="color: #718096; margin: 0; font-size: 14px;">{{ user.email }}</p>
+                <span class="badge badge-primary" style="margin-top: 5px;">{{ user.profile.get_role_display }}</span>
+            </div>
+        </div>
+
+        <div style="background: #f8fafc; border-radius: 12px; padding: 15px; margin-top: 15px;">
+            <div class="row">
+                <div class="col-6">
+                    <small style="color: #718096; font-weight: 600;">Member Since</small>
+                    <p style="color: #2d3748; margin: 0; font-weight: 600;">{{ user.date_joined|date:"M d, Y" }}</p>
+                </div>
+                <div class="col-6">
+                    <small style="color: #718096; font-weight: 600;">Total PRs</small>
+                    <p style="color: #2d3748; margin: 0; font-weight: 600;">{{ user.pr_set.count }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmation Form -->
+    <div style="background: white; border-radius: 20px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.03); margin-bottom: 25px;">
+        <form method="POST" id="deleteForm">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label style="font-weight: 600; color: #2d3748; margin-bottom: 10px;">
+                    <i class="fas fa-keyboard mr-2" style="color: #f56565;"></i>
+                    Type "DELETE" to confirm
+                </label>
+                <input type="text" id="confirmText" class="form-control" 
+                       style="border-radius: 12px; border: 2px solid #e2e8f0; padding: 15px; font-size: 16px; font-weight: 600;"
+                       placeholder="Type DELETE in capital letters"
+                       autocomplete="off"
+                       required>
+                <small class="form-text text-muted">
+                    This confirmation is required to prevent accidental deletion.
+                </small>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="d-flex justify-content-between align-items-center mt-4">
+                <a href="{% url 'profile' %}" class="btn btn-light px-4 py-2" style="border-radius: 12px; border: 1px solid #e2e8f0; font-weight: 600;">
+                    <i class="fas fa-arrow-left mr-2"></i>Cancel
+                </a>
+                
+                <button type="submit" id="deleteButton" class="btn btn-danger px-5 py-2" disabled 
+                        style="border-radius: 12px; font-weight: 600; box-shadow: 0 10px 20px rgba(245,101,101,0.2);">
+                    <i class="fas fa-trash-alt mr-2"></i>Permanently Delete Account
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Alternative Options -->
+    <div class="text-center">
+        <div style="background: #ebf8ff; border-radius: 16px; padding: 20px; display: inline-block;">
+            <p class="mb-2" style="color: #2c5282; font-weight: 600;">
+                <i class="fas fa-lightbulb mr-2"></i>
+                Not sure about deleting?
+            </p>
+            <p class="mb-0" style="color: #2c5282; font-size: 14px;">
+                You can <a href="{% url 'profile' %}" style="color: #3182ce; font-weight: 600;">update your profile</a> or 
+                <a href="{% url 'logout' %}" style="color: #3182ce; font-weight: 600;">just logout</a> instead.
+            </p>
+        </div>
+    </div>
+</div>
+
+<style>
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+    }
+    
+    .btn-danger:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 15px 30px rgba(245,101,101,0.3) !important;
+    }
+    
+    .btn {
+        transition: all 0.3s ease;
+    }
+    
+    #confirmText.is-valid {
+        border-color: #48bb78 !important;
+        background-color: #f0fff4;
+    }
+    
+    #confirmText.is-invalid {
+        border-color: #f56565 !important;
+        background-color: #fff5f5;
+    }
+</style>
+
+<script>
+    $(document).ready(function() {
+        // Enable delete button only when "DELETE" is typed
+        $('#confirmText').on('input', function() {
+            var text = $(this).val();
+            var deleteButton = $('#deleteButton');
+            
+            if (text === 'DELETE') {
+                deleteButton.prop('disabled', false);
+                $(this).removeClass('is-invalid').addClass('is-valid');
+            } else {
+                deleteButton.prop('disabled', true);
+                $(this).removeClass('is-valid');
+                if (text.length > 0) {
+                    $(this).addClass('is-invalid');
+                } else {
+                    $(this).removeClass('is-invalid');
+                }
+            }
+        });
+        
+        // Final confirmation before submit
+        $('#deleteForm').on('submit', function(e) {
+            var confirmText = $('#confirmText').val();
+            
+            if (confirmText !== 'DELETE') {
+                e.preventDefault();
+                alert('Please type DELETE to confirm account deletion.');
+                return false;
+            }
+            
+            // Double confirmation
+            var confirmed = confirm(
+                'Are you absolutely sure you want to delete your account?\n\n' +
+                'This action CANNOT be undone!\n\n' +
+                'Click OK to permanently delete your account.'
+            );
+            
+            if (!confirmed) {
+                e.preventDefault();
+                return false;
+            }
+            
+            // Show loading state
+            $('#deleteButton').html('<i class="fas fa-spinner fa-spin mr-2"></i>Deleting...');
+            $('#deleteButton').prop('disabled', true);
+        });
+        
+        // Warn user if they try to leave the page
+        var formSubmitted = false;
+        $('#deleteForm').on('submit', function() {
+            formSubmitted = true;
+        });
+        
+        window.onbeforeunload = function() {
+            if ($('#confirmText').val().length > 0 && !formSubmitted) {
+                return 'You have unsaved changes. Are you sure you want to leave?';
+            }
+        };
+    });
+</script>
+
+{% endblock content %}

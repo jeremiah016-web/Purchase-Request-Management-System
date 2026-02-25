@@ -1,0 +1,20 @@
+{% extends "prs/layout.html" %}
+{% block content %}
+
+    {% if user.username %}
+    <legend class="mb-3">Categories</legend>
+      <article class="media content-section">
+        <div class="media-body">
+          <ul class="list-group list-group-flush navbar-nav">
+            <li class="list-group-item nav-item"><a class='nav-link' href="">Construction</a></li>
+            <li class="list-group-item nav-item"><a class='nav-link' href="">Consulting</a></li>
+            <li class="list-group-item nav-item"><a class='nav-link' href="">Facility Management</a></li>
+            <li class="list-group-item nav-item"><a class='nav-link' href="">General Goods and Sevices</a></li>
+            <li class="list-group-item nav-item"><a class='nav-link' href="">Information Technlogy</a></li>
+            <li class="list-group-item nav-item"><a class='nav-link' href="">Office Supplies</a></li>
+          </ul>
+        </div>
+      </article>
+    {% endif %}
+
+{% endblock content %}

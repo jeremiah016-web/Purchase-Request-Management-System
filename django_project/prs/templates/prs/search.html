@@ -1,0 +1,44 @@
+{% extends "prs/layout.html" %}
+{% block content %}
+
+<form class="add_your_class" method="GET" action="pr_number">
+  <input class="add_your_class" type="search" name="search">
+  <button class="add_your_class" type="submit">Search</button>
+</form>
+
+
+{% for result in all_search_results %}
+
+    <article class="media content-section">
+      <img class="rounded-circle article-img" src="{{ pr.author.profile.image.url }}">
+      <div class="media-body">
+
+        <div class="article-metadata">
+          <a class="mr-3" href="{% url 'user-prs' pr.author.username %}">{{ result.author }}</a>
+          <small class="text-muted small">{{ result.date_posted|date:"F d, Y" }}</small>
+        </div>
+
+        <table width="100%">
+          <tr>
+            <td class='article-details' width="20%"><a class="article-title" href="{% url 'pr-detail' pr.id %}">{{ result.pr_number }}</a></td>
+            <td class='article-details text-muted' width="20%">Total:</td>
+            <td class='article-details text-muted' width="20%">Status:</td>
+            <td class='article-details text-muted' width="40%">Category:</td>
+          </tr>
+          <tr>
+            <td class='article-details' width="20%"></td>
+            <td class='article-details text-muted' width="20%">{{ result.total }} EUR</td>
+            <td class='article-details text-muted' width="20%">{{ result.status }}</td>
+            <td class='article-details text-muted' width="40%">{{ result.category }}</td>
+          </tr>
+        </table>
+
+      </div>
+    </article>
+
+{% empty %}
+  <p>Not found</p>
+{% endfor %}
+
+
+{% endblock content %}

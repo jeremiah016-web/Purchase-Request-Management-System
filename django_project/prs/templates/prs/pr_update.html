@@ -1,0 +1,566 @@
+{% extends "prs/layout.html" %}
+{% load crispy_forms_tags %}
+{% block content %}
+
+<div class="content-card">
+    <!-- Header Section with Icon -->
+    <div class="d-flex align-items-center mb-4">
+        <div class="mr-3">
+            <div style="width: 50px; height: 50px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 15px; display: flex; align-items: center; justify-content: center;">
+                <i class="fas fa-edit text-white" style="font-size: 24px;"></i>
+            </div>
+        </div>
+        <div>
+            <h2 class="mb-1" style="color: #2d3748; font-weight: 700;">Update {{ pr.pr_number }}</h2>
+            <p class="text-muted mb-0">
+                {% if user.profile.is_requester %}
+                    Edit your purchase request details
+                {% elif user.profile.is_vendor %}
+                    Submit your quotation for this request
+                {% elif user.profile.is_buyer %}
+                    Review and approve quotation
+                {% else %}
+                    Update purchase request information
+                {% endif %}
+            </p>
+        </div>
+    </div>
+
+    <!-- Status Badge -->
+    <div class="mb-4">
+        <span class="badge px-3 py-2" style="font-size: 14px; 
+            {% if pr.status == 'Open' %}background: #48bb78;
+            {% elif pr.status == 'Pending' %}background: #ed8936;
+            {% elif pr.status == 'Approval' %}background: #4299e1;
+            {% elif pr.status == 'Closed' %}background: #718096;
+            {% else %}background: #667eea;{% endif %}">
+            <i class="fas fa-circle mr-1" style="font-size: 8px;"></i> {{ pr.status }}
+        </span>
+        {% if pr.has_quotation %}
+        <span class="badge badge-success px-3 py-2 ml-2" style="font-size: 14px;">
+            <i class="fas fa-file-invoice-dollar mr-1"></i> Quotation Submitted
+        </span>
+        {% endif %}
+        {% if pr.price_approved %}
+        <span class="badge badge-primary px-3 py-2 ml-2" style="font-size: 14px;">
+            <i class="fas fa-check-circle mr-1"></i> Price Approved
+        </span>
+        {% endif %}
+    </div>
+
+    <!-- Calculator Widget for Vendors -->
+    {% if user.profile.is_vendor %}
+    <div class="calculator-widget mb-4" style="background: linear-gradient(135deg, #f8fafc 0%, #e9eef5 100%); border-radius: 15px; padding: 25px; border: 2px solid #e2e8f0;">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+            <h5 style="color: #2d3748; font-weight: 600; margin: 0;">
+                <i class="fas fa-calculator mr-2" style="color: #667eea;"></i>Price Calculator
+            </h5>
+            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="resetCalculator()" style="border-radius: 8px;">
+                <i class="fas fa-redo mr-1"></i>Reset
+            </button>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label style="font-weight: 600; color: #4a5568;">Unit Price (₹)</label>
+                    <input type="number" id="calc_unit_price" class="form-control" placeholder="0.00" step="0.01" min="0" style="border-radius: 8px; border: 2px solid #e2e8f0;">
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label style="font-weight: 600; color: #4a5568;">Quantity</label>
+                    <input type="number" id="calc_quantity" class="form-control" placeholder="0" min="0" value="{{ pr.quantity|default:'' }}" style="border-radius: 8px; border: 2px solid #e2e8f0;">
+                </div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-4">
+                <div class="form-group">
+                    <label style="font-weight: 600; color: #4a5568;">Delivery Cost (₹)</label>
+                    <input type="number" id="calc_delivery" class="form-control" placeholder="0.00" step="0.01" min="0" style="border-radius: 8px; border: 2px solid #e2e8f0;">
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="form-group">
+                    <label style="font-weight: 600; color: #4a5568;">Handling (₹)</label>
+                    <input type="number" id="calc_handling" class="form-control" placeholder="0.00" step="0.01" min="0" style="border-radius: 8px; border: 2px solid #e2e8f0;">
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="form-group">
+                    <label style="font-weight: 600; color: #4a5568;">Tax/GST (%)</label>
+                    <input type="number" id="calc_tax" class="form-control" placeholder="0" step="0.1" min="0" max="100" style="border-radius: 8px; border: 2px solid #e2e8f0;">
+                </div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-12">
+                <div style="background: white; border-radius: 12px; padding: 20px; border: 2px solid #667eea;">
+                    <div class="row">
+                        <div class="col-6">
+                            <p style="color: #718096; margin: 0; font-size: 14px;">Subtotal:</p>
+                            <h4 style="color: #2d3748; font-weight: 600; margin: 5px 0;">₹<span id="calc_subtotal">0.00</span></h4>
+                        </div>
+                        <div class="col-6">
+                            <p style="color: #718096; margin: 0; font-size: 14px;">Tax Amount:</p>
+                            <h4 style="color: #2d3748; font-weight: 600; margin: 5px 0;">₹<span id="calc_tax_amount">0.00</span></h4>
+                        </div>
+                    </div>
+                    <hr style="margin: 15px 0;">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p style="color: #718096; margin: 0; font-size: 16px; font-weight: 600;">TOTAL PRICE:</p>
+                        </div>
+                        <div>
+                            <h2 style="color: #48bb78; font-weight: 700; margin: 0;">₹<span id="calc_total">0.00</span></h2>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-success btn-block mt-3" onclick="applyToForm()" style="border-radius: 8px;">
+                        <i class="fas fa-arrow-down mr-2"></i>Apply to Estimated Price
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="mt-3">
+            <button type="button" class="btn btn-sm btn-link" onclick="copyBreakdown()" style="color: #667eea;">
+                <i class="fas fa-copy mr-1"></i>Copy Price Breakdown to Notes
+            </button>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Form Container -->
+    <div class="form-container" style="background: white; border-radius: 20px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.03);">
+        <form method="POST" id="purchaseRequestForm">
+            {% csrf_token %}
+            
+            <!-- Render form with crispy -->
+            <fieldset class="form-group">
+                {{ form|crispy }}
+            </fieldset>
+
+            <!-- Action Buttons -->
+            <div class="form-group mt-5 mb-0">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <a href="{% url 'pr-detail' pr.pk %}" class="btn btn-light px-4 py-2" style="border-radius: 12px; border: 1px solid #e2e8f0; color: #4a5568; font-weight: 600;">
+                            <i class="fas fa-times mr-2"></i>Cancel
+                        </a>
+                    </div>
+                    <div>
+                        <button class="btn btn-primary px-5 py-2" type="submit" style="border-radius: 12px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; font-weight: 600; box-shadow: 0 10px 20px rgba(102,126,234,0.2);">
+                            <i class="fas fa-check-circle mr-2"></i>
+                            {% if user.profile.is_vendor %}
+                                Submit Quotation
+                            {% elif user.profile.is_buyer %}
+                                Approve & Update
+                            {% else %}
+                                Update Request
+                            {% endif %}
+                            <i class="fas fa-arrow-right ml-2"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Help Section -->
+    <div class="mt-4 p-4" style="background: #f8fafc; border-radius: 16px; border-left: 4px solid #667eea;">
+        <div class="d-flex align-items-start">
+            <div class="mr-3">
+                <i class="fas fa-lightbulb" style="color: #667eea; font-size: 20px;"></i>
+            </div>
+            <div>
+                <h6 style="color: #2d3748; font-weight: 600; margin-bottom: 5px;">
+                    {% if user.profile.is_requester %}
+                        Requester Instructions
+                    {% elif user.profile.is_vendor %}
+                        Vendor Instructions
+                    {% elif user.profile.is_buyer %}
+                        Buyer Instructions
+                    {% else %}
+                        Instructions
+                    {% endif %}
+                </h6>
+                <p class="text-muted mb-0" style="font-size: 14px;">
+                    {% if user.profile.is_requester %}
+                        You can edit item details while the request is in "Open" status. Once a vendor is assigned, you cannot modify the request.
+                    {% elif user.profile.is_vendor %}
+                        Use the calculator above to calculate your total price. Review the item requirements and provide your best quotation. Include detailed price breakdown in the notes section.
+                    {% elif user.profile.is_buyer %}
+                        Review the vendor's quotation and approve the final price. You can also assign vendors and update the request status.
+                    {% else %}
+                        Update the necessary fields and click the update button to save changes.
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Custom CSS for Form Styling -->
+<style>
+    /* Custom form field styling */
+    .form-container .form-group {
+        margin-bottom: 1.8rem;
+    }
+    
+    .form-container label {
+        font-weight: 600;
+        color: #2d3748;
+        margin-bottom: 8px;
+        font-size: 0.95rem;
+    }
+    
+    .form-container .form-control {
+        border-radius: 12px;
+        border: 1px solid #e2e8f0;
+        padding: 12px 16px;
+        height: auto;
+        transition: all 0.3s ease;
+    }
+    
+    .form-container .form-control:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102,126,234,0.1);
+    }
+    
+    /* Crispy Forms specific styling */
+    .form-container .asteriskField {
+        color: #e53e3e;
+        margin-left: 4px;
+    }
+    
+    .form-container .alert {
+        border-radius: 12px;
+        border: none;
+        background: #fff5f5;
+        color: #c53030;
+        padding: 12px 16px;
+        font-size: 14px;
+    }
+    
+    /* Select field styling */
+    .form-container select.form-control {
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23667eea' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 16px center;
+        padding-right: 40px;
+    }
+    
+    /* Textarea styling */
+    .form-container textarea.form-control {
+        min-height: 120px;
+        resize: vertical;
+    }
+    
+    /* Checkbox and radio styling */
+    .form-container .form-check {
+        padding-left: 2rem;
+    }
+    
+    .form-container .form-check-input {
+        width: 1.2rem;
+        height: 1.2rem;
+        margin-left: -2rem;
+    }
+    
+    /* Help text styling */
+    .form-container .form-text {
+        font-size: 12px;
+        color: #718096;
+        margin-top: 6px;
+    }
+    
+    /* Invalid field styling */
+    .form-container .is-invalid {
+        border-color: #fc8181;
+    }
+    
+    .form-container .invalid-feedback {
+        color: #e53e3e;
+        font-size: 13px;
+        margin-top: 6px;
+    }
+    
+    /* Button hover effects */
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 15px 30px rgba(102,126,234,0.3) !important;
+    }
+    
+    .btn-light:hover {
+        background: #f7fafc !important;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+    }
+    
+    /* Animation for form appearance */
+    .content-card {
+        animation: slideUp 0.5s ease;
+    }
+    
+    @keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .form-container {
+            padding: 20px !important;
+        }
+        
+        .d-flex.justify-content-between {
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .btn {
+            width: 100%;
+        }
+    }
+</style>
+
+<!-- JavaScript for enhanced form experience -->
+<script>
+    $(document).ready(function() {
+        // Dynamic Item Type Dropdown based on Category
+        const categoryField = $('#id_category');
+        const itemTypeField = $('#id_item_type');
+        
+        // Store original item type value
+        const originalItemType = itemTypeField.val();
+        
+        // Function to update item types
+        function updateItemTypes() {
+            const selectedCategory = categoryField.val();
+            
+            if (!selectedCategory) {
+                itemTypeField.html('<option value="">---------</option>');
+                return;
+            }
+            
+            // Fetch item types via AJAX
+            $.ajax({
+                url: '{% url "get-item-types" %}',
+                data: {
+                    'category': selectedCategory
+                },
+                dataType: 'json',
+                success: function(data) {
+                    // Clear current options
+                    itemTypeField.html('<option value="">Select Item Type</option>');
+                    
+                    // Add new options
+                    $.each(data.item_types, function(index, item) {
+                        itemTypeField.append(
+                            $('<option></option>').attr('value', item.value).text(item.label)
+                        );
+                    });
+                    
+                    // Restore original value if it exists in new options
+                    if (originalItemType) {
+                        itemTypeField.val(originalItemType);
+                    }
+                },
+                error: function() {
+                    console.error('Error fetching item types');
+                }
+            });
+        }
+        
+        // Update item types when category changes
+        categoryField.on('change', updateItemTypes);
+        
+        // Initialize on page load if category is already selected
+        if (categoryField.val()) {
+            updateItemTypes();
+        }
+        
+        // Add character counter for textareas
+        $('textarea.form-control').each(function() {
+            let textarea = $(this);
+            let maxLength = textarea.attr('maxlength') || 1000;
+            
+            textarea.after('<small class="text-muted char-counter" style="float: right; margin-top: 5px;">0/' + maxLength + ' characters</small>');
+            
+            textarea.on('keyup', function() {
+                let currentLength = $(this).val().length;
+                $(this).next('.char-counter').text(currentLength + '/' + maxLength + ' characters');
+                
+                // Change color when approaching limit
+                if (currentLength > maxLength * 0.9) {
+                    $(this).next('.char-counter').css('color', '#e53e3e');
+                } else {
+                    $(this).next('.char-counter').css('color', '#718096');
+                }
+            });
+            
+            // Trigger initial count
+            textarea.trigger('keyup');
+        });
+        
+        // Confirm before cancel
+        $('.btn-light').on('click', function(e) {
+            e.preventDefault();
+            if (confirm('Are you sure you want to cancel? Any unsaved changes will be lost.')) {
+                window.location.href = $(this).attr('href');
+            }
+        });
+        
+        // Animate form fields on focus
+        $('.form-control').on('focus', function() {
+            $(this).closest('.form-group').addClass('focused');
+        }).on('blur', function() {
+            $(this).closest('.form-group').removeClass('focused');
+        });
+        
+        // Calculator event listeners - attach to calculator fields
+        $('#calc_unit_price, #calc_quantity, #calc_delivery, #calc_handling, #calc_tax').on('input change keyup', function() {
+            calculateTotal();
+        });
+        
+        // Initial calculation if values exist
+        if ($('#calc_unit_price').val() || $('#calc_quantity').val()) {
+            calculateTotal();
+        }
+    });
+    
+    // Calculator Functions
+    function calculateTotal() {
+        // Get input values
+        const unitPrice = parseFloat($('#calc_unit_price').val()) || 0;
+        const quantity = parseFloat($('#calc_quantity').val()) || 0;
+        const delivery = parseFloat($('#calc_delivery').val()) || 0;
+        const handling = parseFloat($('#calc_handling').val()) || 0;
+        const taxPercent = parseFloat($('#calc_tax').val()) || 0;
+        
+        // Calculate subtotal (unit price * quantity + delivery + handling)
+        const subtotal = (unitPrice * quantity) + delivery + handling;
+        
+        // Calculate tax amount
+        const taxAmount = subtotal * (taxPercent / 100);
+        
+        // Calculate total
+        const total = subtotal + taxAmount;
+        
+        // Update display with formatted numbers
+        $('#calc_subtotal').text(subtotal.toFixed(2));
+        $('#calc_tax_amount').text(taxAmount.toFixed(2));
+        $('#calc_total').text(total.toFixed(2));
+        
+        return total;
+    }
+    
+    function applyToForm() {
+        // Recalculate to ensure we have the latest value
+        const total = calculateTotal();
+        
+        if (total > 0) {
+            // Find the estimated_price field and set its value
+            const estimatedPriceField = $('#id_estimated_price');
+            if (estimatedPriceField.length) {
+                estimatedPriceField.val(total.toFixed(2));
+                
+                // Visual feedback
+                estimatedPriceField.css('background-color', '#c6f6d5');
+                setTimeout(function() {
+                    estimatedPriceField.css('background-color', '');
+                }, 1000);
+                
+                // Show success message
+                alert('Price applied successfully! Total: ₹' + total.toFixed(2));
+            } else {
+                alert('Could not find the estimated price field.');
+            }
+        } else {
+            alert('Please enter values in the calculator first.');
+        }
+    }
+    
+    function copyBreakdown() {
+        const unitPrice = parseFloat($('#calc_unit_price').val()) || 0;
+        const quantity = parseFloat($('#calc_quantity').val()) || 0;
+        const delivery = parseFloat($('#calc_delivery').val()) || 0;
+        const handling = parseFloat($('#calc_handling').val()) || 0;
+        const taxPercent = parseFloat($('#calc_tax').val()) || 0;
+        const subtotal = parseFloat($('#calc_subtotal').text()) || 0;
+        const taxAmount = parseFloat($('#calc_tax_amount').text()) || 0;
+        const total = parseFloat($('#calc_total').text()) || 0;
+        
+        if (total === 0) {
+            alert('Please calculate a price first.');
+            return;
+        }
+        
+        // Create price breakdown text
+        let breakdown = '=== PRICE BREAKDOWN ===\n\n';
+        breakdown += 'Unit Price: ₹' + unitPrice.toFixed(2) + '\n';
+        breakdown += 'Quantity: ' + quantity + '\n';
+        breakdown += 'Items Total: ₹' + (unitPrice * quantity).toFixed(2) + '\n';
+        
+        if (delivery > 0) {
+            breakdown += 'Delivery Cost: ₹' + delivery.toFixed(2) + '\n';
+        }
+        if (handling > 0) {
+            breakdown += 'Handling Fee: ₹' + handling.toFixed(2) + '\n';
+        }
+        
+        breakdown += '\nSubtotal: ₹' + subtotal.toFixed(2) + '\n';
+        
+        if (taxPercent > 0) {
+            breakdown += 'Tax/GST (' + taxPercent + '%): ₹' + taxAmount.toFixed(2) + '\n';
+        }
+        
+        breakdown += '\n=== TOTAL: ₹' + total.toFixed(2) + ' ===';
+        
+        // Find the quotation_notes field and append the breakdown
+        const notesField = $('#id_quotation_notes');
+        if (notesField.length) {
+            const currentNotes = notesField.val();
+            const newNotes = currentNotes ? currentNotes + '\n\n' + breakdown : breakdown;
+            notesField.val(newNotes);
+            
+            // Visual feedback
+            notesField.css('background-color', '#c6f6d5');
+            setTimeout(function() {
+                notesField.css('background-color', '');
+            }, 1000);
+            
+            // Scroll to notes field
+            $('html, body').animate({
+                scrollTop: notesField.offset().top - 100
+            }, 500);
+            
+            alert('Price breakdown copied to quotation notes!');
+        } else {
+            alert('Could not find the quotation notes field.');
+        }
+    }
+    
+    function resetCalculator() {
+        $('#calc_unit_price').val('');
+        $('#calc_quantity').val('{{ pr.quantity|default:"" }}');
+        $('#calc_delivery').val('');
+        $('#calc_handling').val('');
+        $('#calc_tax').val('');
+        $('#calc_subtotal').text('0.00');
+        $('#calc_tax_amount').text('0.00');
+        $('#calc_total').text('0.00');
+    }
+</script>
+
+{% endblock content %}

@@ -1,0 +1,17 @@
+{% extends "prs/layout.html" %}
+{% block content %}
+
+    {% if user.username %}
+      <legend class="mb-3">Buyers</legend>
+      <article class="media content-section">
+        <div class="media-body">
+          <ul class="list-group list-group-flush navbar-nav">
+            {% for buyer in buyers %}
+            <li class="list-group-item nav-item"><a class='nav-link' href="{% url 'user-prs' buyer.username %}">{{ buyer.username }}</a></li>
+            {% endfor %}
+          </ul>
+        </div>
+      </article>
+    {% endif %}
+
+{% endblock content %}

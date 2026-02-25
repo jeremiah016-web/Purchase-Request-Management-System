@@ -1,0 +1,326 @@
+{% extends "prs/layout.html" %}
+{% block content %}
+
+<div class="content-card" style="max-width: 500px; margin: 0 auto; text-align: center;">
+    <!-- Success Animation -->
+    <div class="mb-4">
+        <div style="width: 100px; height: 100px; background: linear-gradient(135deg, #48bb78 0%, #38a169 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 25px; box-shadow: 0 10px 20px rgba(72,187,120,0.2); animation: scaleIn 0.5s ease;">
+            <i class="fas fa-check-circle text-white" style="font-size: 48px;"></i>
+        </div>
+        
+        <h2 style="color: #2d3748; font-weight: 700; margin-bottom: 15px; animation: fadeInUp 0.5s ease 0.2s both;">
+            Successfully Logged Out!
+        </h2>
+        
+        <div style="animation: fadeInUp 0.5s ease 0.4s both;">
+            <p class="text-muted" style="font-size: 16px; max-width: 350px; margin: 0 auto;">
+                <i class="fas fa-smile mr-2" style="color: #48bb78;"></i>
+                You have been securely logged out of your account.
+            </p>
+        </div>
+    </div>
+
+    <!-- Session Info Card -->
+    <div style="background: #f8fafc; border-radius: 16px; padding: 20px; margin-bottom: 25px; animation: fadeInUp 0.5s ease 0.6s both;">
+        <div class="d-flex align-items-center justify-content-center mb-3">
+            <i class="fas fa-shield-alt" style="color: #667eea; font-size: 20px; margin-right: 10px;"></i>
+            <span style="color: #2d3748; font-weight: 600;">Session Terminated</span>
+        </div>
+        <p class="text-muted mb-0" style="font-size: 14px;">
+            Your session has been cleared and all temporary data has been removed. 
+            For security reasons, please close your browser if you're on a shared device.
+        </p>
+    </div>
+
+    <!-- Action Buttons -->
+    <div style="animation: fadeInUp 0.5s ease 0.8s both;">
+        <div class="d-flex flex-column flex-sm-row justify-content-center gap-3" style="gap: 15px;">
+            <a href="{% url 'login' %}" 
+               class="btn btn-primary px-5 py-3" 
+               style="border-radius: 12px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; font-weight: 600; font-size: 16px; box-shadow: 0 10px 20px rgba(102,126,234,0.2); transition: all 0.3s ease; flex: 1;">
+                <i class="fas fa-sign-in-alt mr-2"></i>
+                Log In Again
+                <i class="fas fa-arrow-right ml-2"></i>
+            </a>
+            
+            <a href="{% url 'prs-home' %}" 
+               class="btn btn-outline-secondary px-5 py-3" 
+               style="border-radius: 12px; border: 2px solid #e2e8f0; color: #4a5568; font-weight: 600; font-size: 16px; transition: all 0.3s ease; flex: 1;">
+                <i class="fas fa-home mr-2"></i>
+                Go to Homepage
+            </a>
+        </div>
+    </div>
+
+    <!-- Additional Links -->
+    <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #e2e8f0; animation: fadeInUp 0.5s ease 1s both;">
+        <div class="row">
+            <div class="col-md-6 mb-3 mb-md-0">
+                <a href="{% url 'register' %}" style="color: #667eea; text-decoration: none; font-weight: 500;">
+                    <i class="fas fa-user-plus mr-1"></i>
+                    Don't have an account? Sign Up
+                </a>
+            </div>
+            <div class="col-md-6">
+                <a href="#" style="color: #718096; text-decoration: none; font-weight: 500;">
+                    <i class="fas fa-question-circle mr-1"></i>
+                    Need help?
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Browser Security Tips -->
+    <div style="margin-top: 30px; padding: 15px; background: #ebf8ff; border-radius: 12px; display: inline-block; animation: fadeInUp 0.5s ease 1.2s both;">
+        <small style="color: #2c5282;">
+            <i class="fas fa-info-circle mr-1"></i>
+            For added security, clear your browser cache or use private browsing mode.
+        </small>
+    </div>
+</div>
+
+<!-- Custom Styles -->
+<style>
+    /* Animations */
+    @keyframes scaleIn {
+        from {
+            opacity: 0;
+            transform: scale(0.8);
+        }
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+    
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    @keyframes slideInRight {
+        from {
+            opacity: 0;
+            transform: translateX(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+    
+    /* Hover Effects */
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 15px 30px rgba(102,126,234,0.3) !important;
+    }
+    
+    .btn-outline-secondary:hover {
+        background: #edf2f7 !important;
+        border-color: #cbd5e0 !important;
+        transform: translateY(-2px);
+    }
+    
+    /* Responsive Gap Fix */
+    .gap-3 {
+        gap: 15px;
+    }
+    
+    @media (max-width: 576px) {
+        .content-card {
+            padding: 25px 20px !important;
+        }
+        
+        .d-flex.flex-sm-row {
+            flex-direction: column;
+        }
+        
+        .btn {
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        
+        .gap-3 {
+            gap: 0;
+        }
+    }
+    
+    /* Checkmark animation */
+    .fa-check-circle {
+        animation: checkmark 0.8s ease;
+    }
+    
+    @keyframes checkmark {
+        0% {
+            opacity: 0;
+            transform: scale(0.5) rotate(-45deg);
+        }
+        50% {
+            opacity: 1;
+            transform: scale(1.2) rotate(0deg);
+        }
+        100% {
+            transform: scale(1) rotate(0deg);
+        }
+    }
+    
+    /* Confetti effect (optional) */
+    .confetti {
+        position: fixed;
+        width: 10px;
+        height: 10px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        opacity: 0.6;
+        pointer-events: none;
+        animation: confetti 3s ease-out forwards;
+        z-index: 9999;
+    }
+    
+    @keyframes confetti {
+        0% {
+            transform: translateY(0) rotate(0deg);
+            opacity: 1;
+        }
+        100% {
+            transform: translateY(100vh) rotate(720deg);
+            opacity: 0;
+        }
+    }
+    
+    /* Card styling */
+    .content-card {
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .content-card::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -50%;
+        width: 200px;
+        height: 200px;
+        background: linear-gradient(135deg, rgba(102,126,234,0.05) 0%, rgba(118,75,162,0.05) 100%);
+        border-radius: 50%;
+        z-index: 0;
+    }
+</style>
+
+<!-- JavaScript for enhanced experience -->
+<script>
+    $(document).ready(function() {
+        // Confetti effect on logout (optional, uncomment to enable)
+        /*
+        function createConfetti() {
+            for (let i = 0; i < 50; i++) {
+                setTimeout(function() {
+                    let confetti = $('<div class="confetti"></div>');
+                    let left = Math.random() * 100;
+                    let size = Math.random() * 10 + 5;
+                    let duration = Math.random() * 2 + 2;
+                    
+                    confetti.css({
+                        'left': left + '%',
+                        'width': size + 'px',
+                        'height': size + 'px',
+                        'animation-duration': duration + 's',
+                        'background': i % 2 === 0 ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' : 'linear-gradient(135deg, #48bb78 0%, #38a169 100%)'
+                    });
+                    
+                    $('body').append(confetti);
+                    
+                    setTimeout(function() {
+                        confetti.remove();
+                    }, duration * 1000);
+                }, i * 50);
+            }
+        }
+        
+        createConfetti();
+        */
+        
+        // Auto redirect countdown (optional)
+        let timeLeft = 10;
+        let countdownInterval;
+        
+        function startCountdown() {
+            let countdownEl = $('<div class="mt-4 text-muted"><small><i class="fas fa-clock mr-1"></i>Redirecting to login in <span id="countdown">10</span> seconds...</small></div>');
+            $('.content-card').append(countdownEl);
+            
+            countdownInterval = setInterval(function() {
+                timeLeft--;
+                $('#countdown').text(timeLeft);
+                
+                if (timeLeft <= 0) {
+                    clearInterval(countdownInterval);
+                    window.location.href = "{% url 'login' %}";
+                }
+            }, 1000);
+        }
+        
+        // Uncomment to enable auto-redirect
+        // startCountdown();
+        
+        // Clear countdown if user interacts with buttons
+        $('.btn').on('click', function() {
+            clearInterval(countdownInterval);
+        });
+        
+        // Save logout timestamp to localStorage (optional)
+        let logoutTime = new Date().toLocaleString();
+        localStorage.setItem('lastLogout', logoutTime);
+        
+        // Animate the checkmark
+        setTimeout(function() {
+            $('.fa-check-circle').addClass('fa-bounce');
+            setTimeout(function() {
+                $('.fa-check-circle').removeClass('fa-bounce');
+            }, 1000);
+        }, 500);
+        
+        // Show helpful message based on last visit
+        let lastLogin = localStorage.getItem('lastLogin');
+        if (lastLogin) {
+            $('.text-muted').append('<br><small class="text-muted">Last login: ' + lastLogin + '</small>');
+        }
+    });
+</script>
+
+<!-- Add Font Awesome animation support if not already included -->
+<style>
+    /* Font Awesome animations */
+    .fa-bounce {
+        animation: fa-bounce 1s ease;
+    }
+    
+    @keyframes fa-bounce {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.2); }
+    }
+    
+    /* Smooth transitions */
+    .btn, a {
+        transition: all 0.3s ease !important;
+    }
+    
+    /* Hover effect for links */
+    a:hover {
+        text-decoration: none !important;
+        transform: translateX(3px);
+    }
+    
+    /* Gradient text effect */
+    .gradient-text {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+</style>
+
+{% endblock content %}

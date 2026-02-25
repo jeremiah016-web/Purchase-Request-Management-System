@@ -1,0 +1,168 @@
+{% extends "prs/layout.html" %}
+{% load crispy_forms_tags %}
+{% block content %}
+
+<div class="content-card" style="max-width: 600px; margin: 0 auto;">
+    <!-- Welcome Header -->
+    <div class="text-center mb-5">
+        <div style="width: 90px; height: 90px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 25px; display: flex; align-items: center; justify-content: center; margin: 0 auto 25px; box-shadow: 0 15px 30px rgba(102,126,234,0.3);">
+            <i class="fas fa-user-check text-white" style="font-size: 42px;"></i>
+        </div>
+        <h2 style="color: #2d3748; font-weight: 800; font-size: 32px; margin-bottom: 10px;">
+            Welcome, {{ user.first_name|default:user.username }}!
+        </h2>
+        <p class="text-muted" style="font-size: 16px; max-width: 450px; margin: 0 auto;">
+            <i class="fas fa-sparkles mr-2" style="color: #667eea;"></i>
+            One more step - please select your role in the organization
+        </p>
+    </div>
+
+    <!-- Role Selection Form -->
+    <div style="background: white; border-radius: 30px; padding: 35px; box-shadow: 0 20px 40px rgba(0,0,0,0.05);">
+        <form method="POST">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label style="font-weight: 700; color: #2d3748; font-size: 18px; margin-bottom: 20px;">
+                    <i class="fas fa-user-tag mr-2" style="color: #667eea;"></i>
+                    Select Your Role
+                </label>
+                
+                <!-- Role Cards -->
+                <div class="role-selection">
+                    <div class="role-card" data-role="requester">
+                        <input type="radio" name="role" value="requester" id="role-requester" checked>
+                        <label for="role-requester">
+                            <div class="role-icon" style="background: rgba(102,126,234,0.1);">
+                                <i class="fas fa-user" style="color: #667eea;"></i>
+                            </div>
+                            <h5>Requester</h5>
+                            <p>Create and manage purchase requests</p>
+                        </label>
+                    </div>
+
+                    <div class="role-card" data-role="buyer">
+                        <input type="radio" name="role" value="buyer" id="role-buyer">
+                        <label for="role-buyer">
+                            <div class="role-icon" style="background: rgba(72,187,120,0.1);">
+                                <i class="fas fa-shopping-cart" style="color: #48bb78;"></i>
+                            </div>
+                            <h5>Buyer</h5>
+                            <p>Review and approve purchase requests</p>
+                        </label>
+                    </div>
+
+                    <div class="role-card" data-role="admin">
+                        <input type="radio" name="role" value="admin" id="role-admin">
+                        <label for="role-admin">
+                            <div class="role-icon" style="background: rgba(237,137,54,0.1);">
+                                <i class="fas fa-crown" style="color: #ed8936;"></i>
+                            </div>
+                            <h5>Admin</h5>
+                            <p>Full system access and management</p>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="form-group mb-0 mt-4">
+                <button class="btn btn-primary btn-block py-3" type="submit" style="border-radius: 16px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; font-weight: 700; font-size: 18px; box-shadow: 0 10px 20px rgba(102,126,234,0.2);">
+                    <i class="fas fa-check mr-2"></i>
+                    Complete Setup
+                    <i class="fas fa-arrow-right ml-2"></i>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    .role-selection {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+
+    .role-card {
+        position: relative;
+    }
+
+    .role-card input[type="radio"] {
+        position: absolute;
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    .role-card label {
+        display: block;
+        background: #f8fafc;
+        border: 2px solid #e2e8f0;
+        border-radius: 16px;
+        padding: 25px 15px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        height: 100%;
+    }
+
+    .role-card label:hover {
+        background: white;
+        border-color: #667eea;
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(102,126,234,0.1);
+    }
+
+    .role-card input[type="radio"]:checked + label {
+        background: white;
+        border-color: #667eea;
+        box-shadow: 0 10px 30px rgba(102,126,234,0.2);
+    }
+
+    .role-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 15px;
+    }
+
+    .role-icon i {
+        font-size: 28px;
+    }
+
+    .role-card h5 {
+        color: #2d3748;
+        font-weight: 700;
+        margin-bottom: 8px;
+        font-size: 16px;
+    }
+
+    .role-card p {
+        color: #718096;
+        font-size: 13px;
+        margin: 0;
+        line-height: 1.4;
+    }
+
+    @media (max-width: 576px) {
+        .role-selection {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<script>
+    $(document).ready(function() {
+        // Add animation on selection
+        $('input[name="role"]').change(function() {
+            $('.role-card').removeClass('selected');
+            $(this).closest('.role-card').addClass('selected');
+        });
+    });
+</script>
+
+{% endblock content %}

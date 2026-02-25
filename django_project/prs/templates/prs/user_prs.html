@@ -1,0 +1,52 @@
+{% extends "prs/layout.html" %}
+{% block content %}
+    <legend class="mb-3">PRs from {{ view.kwargs.username }} ({{ page_obj.paginator.count }})</legend>
+    {% for pr in prs %}
+        <article class="media content-section">
+          <img class="rounded-circle article-img" src="{{ pr.author.profile.image.url }}">
+          <div class="media-body">
+            <div class="article-metadata">
+              <a class="mr-2" href="{% url 'user-prs' pr.author.username %}">{{ pr.author }}</a>
+              <small class="text-muted">{{ pr.date_posted|date:"F d, Y" }}</small>
+            </div>
+
+            <table width="100%">
+              <tr>
+                <td class='article-details' width="20%"><a class="article-title" href="{% url 'pr-detail' pr.id %}">{{ pr.pr_number }}</a></td>
+                <td class='article-details text-muted' width="20%">Total:</td>
+                <td class='article-details text-muted' width="20%">Status:</td>
+                <td class='article-details text-muted' width="40%">Category:</td>
+              </tr>
+              <tr>
+                <td class='article-details' width="20%"></td>
+                <td class='article-details text-muted' width="20%">{{ pr.total }} EUR</td>
+                <td class='article-details text-muted' width="20%">{{ pr.status }}</td>
+                <td class='article-details text-muted' width="40%">{{ pr.category }}</td>
+              </tr>
+            </table>
+
+          </div>
+        </article>
+    {% endfor %}
+    {% if is_paginated %}
+
+      {% if page_obj.has_previous %}
+        <a class="btn btn-outline-secondary mb-4" href="?page=1">First</a>
+        <a class="btn btn-outline-secondary mb-4" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+      {% endif %}
+
+      {% for num in page_obj.paginator.page_range %}
+        {% if page_obj.number == num %}
+          <a class="btn btn-secondary mb-4" href="?page={{ num }}">{{ num }}</a>
+        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+          <a class="btn btn-outline-secondary mb-4" href="?page={{ num }}">{{ num }}</a>
+        {% endif %}
+      {% endfor %}
+
+      {% if page_obj.has_next %}
+        <a class="btn btn-outline-secondary mb-4" href="?page={{ page_obj.next_page_number }}">Next</a>
+        <a class="btn btn-outline-secondary mb-4" href="?page={{ page_obj.paginator.num_pages }}">Last</a>
+      {% endif %}
+
+    {% endif %}
+{% endblock content %}

@@ -1,0 +1,318 @@
+{% extends "prs/layout.html" %}
+{% block content %}
+
+<div class="content-card">
+    <!-- Header -->
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h2 style="color: #2d3748; font-weight: 700; margin-bottom: 5px;">
+                <i class="fas fa-store mr-2" style="color: #667eea;"></i>{{ vendor.name }}
+            </h2>
+            <p class="text-muted mb-0">Vendor Details</p>
+        </div>
+        <div>
+            <a href="{% url 'vendor-list' %}" class="btn btn-outline-primary mr-2" style="border-radius: 8px;">
+                <i class="fas fa-arrow-left mr-2"></i>Back
+            </a>
+            {% if user.profile.is_admin %}
+            <a href="{% url 'vendor-update' vendor.pk %}" class="btn btn-primary" style="border-radius: 8px;">
+                <i class="fas fa-edit mr-2"></i>Edit
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Vendor Info Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div style="background: white; border-radius: 12px; padding: 20px; box-shadow: 0 3px 10px rgba(0,0,0,0.05); border-left: 4px solid #667eea;">
+                <p style="color: #718096; font-size: 12px; font-weight: 600; text-transform: uppercase; margin-bottom: 5px;">Status</p>
+                {% if vendor.status == 'Active' %}
+                    <span class="badge" style="background: #c6f6d5; color: #22543d; padding: 8px 16px; font-size: 14px;">
+                        <i class="fas fa-check-circle mr-1"></i>{{ vendor.status }}
+                    </span>
+                {% elif vendor.status == 'Inactive' %}
+                    <span class="badge badge-secondary" style="padding: 8px 16px; font-size: 14px;">{{ vendor.status }}</span>
+                {% else %}
+                    <span class="badge" style="background: #fed7d7; color: #c53030; padding: 8px 16px; font-size: 14px;">{{ vendor.status }}</span>
+                {% endif %}
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div style="background: white; border-radius: 12px; padding: 20px; box-shadow: 0 3px 10px rgba(0,0,0,0.05); border-left: 4px solid #48bb78;">
+                <p style="color: #718096; font-size: 12px; font-weight: 600; text-transform: uppercase; margin-bottom: 5px;">Total Orders</p>
+                <h3 style="color: #2d3748; font-weight: 700; margin: 0;">{{ vendor.total_orders }}</h3>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div style="background: white; border-radius: 12px; padding: 20px; box-shadow: 0 3px 10px rgba(0,0,0,0.05); border-left: 4px solid #ed8936;">
+                <p style="color: #718096; font-size: 12px; font-weight: 600; text-transform: uppercase; margin-bottom: 5px;">Total Value</p>
+                <h3 style="color: #2d3748; font-weight: 700; margin: 0;">€{{ vendor.total_value|floatformat:2 }}</h3>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div style="background: white; border-radius: 12px; padding: 20px; box-shadow: 0 3px 10px rgba(0,0,0,0.05); border-left: 4px solid #9f7aea;">
+                <p style="color: #718096; font-size: 12px; font-weight: 600; text-transform: uppercase; margin-bottom: 5px;">Rating</p>
+                <div style="color: #ed8936; font-size: 18px;">
+                    {% for i in "12345" %}
+                        {% if forloop.counter <= vendor.rating %}
+                            <i class="fas fa-star"></i>
+                        {% else %}
+                            <i class="far fa-star"></i>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contact Information -->
+    <div style="background: white; border-radius: 15px; padding: 25px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); margin-bottom: 20px;">
+        <h5 style="color: #2d3748; font-weight: 600; margin-bottom: 20px;">
+            <i class="fas fa-address-card mr-2" style="color: #667eea;"></i>Contact Information
+        </h5>
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <p style="color: #718096; font-size: 13px; font-weight: 600; margin-bottom: 5px;">Contact Person</p>
+                <p style="color: #2d3748; font-weight: 600;">{{ vendor.contact_person|default:"Not provided" }}</p>
+            </div>
+            <div class="col-md-6 mb-3">
+                <p style="color: #718096; font-size: 13px; font-weight: 600; margin-bottom: 5px;">Email</p>
+                <p style="color: #2d3748; font-weight: 600;">
+                    {% if vendor.email %}
+                        <a href="mailto:{{ vendor.email }}" style="color: #667eea;">{{ vendor.email }}</a>
+                    {% else %}
+                        Not provided
+                    {% endif %}
+                </p>
+            </div>
+            <div class="col-md-6 mb-3">
+                <p style="color: #718096; font-size: 13px; font-weight: 600; margin-bottom: 5px;">Phone</p>
+                <p style="color: #2d3748; font-weight: 600;">{{ vendor.phone|default:"Not provided" }}</p>
+            </div>
+            <div class="col-md-6 mb-3">
+                <p style="color: #718096; font-size: 13px; font-weight: 600; margin-bottom: 5px;">Website</p>
+                <p style="color: #2d3748; font-weight: 600;">
+                    {% if vendor.website %}
+                        <a href="{{ vendor.website }}" target="_blank" style="color: #667eea;">{{ vendor.website }}</a>
+                    {% else %}
+                        Not provided
+                    {% endif %}
+                </p>
+            </div>
+            <div class="col-md-12 mb-3">
+                <p style="color: #718096; font-size: 13px; font-weight: 600; margin-bottom: 5px;">Address</p>
+                <p style="color: #4a5568; white-space: pre-wrap;">{{ vendor.address|default:"Not provided" }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Business Details -->
+    <div style="background: white; border-radius: 15px; padding: 25px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); margin-bottom: 20px;">
+        <h5 style="color: #2d3748; font-weight: 600; margin-bottom: 20px;">
+            <i class="fas fa-briefcase mr-2" style="color: #667eea;"></i>Business Details
+        </h5>
+        <div class="row">
+            <div class="col-md-4 mb-3">
+                <p style="color: #718096; font-size: 13px; font-weight: 600; margin-bottom: 5px;">Tax ID</p>
+                <p style="color: #2d3748; font-weight: 600;">{{ vendor.tax_id|default:"Not provided" }}</p>
+            </div>
+            <div class="col-md-4 mb-3">
+                <p style="color: #718096; font-size: 13px; font-weight: 600; margin-bottom: 5px;">Bank Account</p>
+                <p style="color: #2d3748; font-weight: 600;">{{ vendor.bank_account|default:"Not provided" }}</p>
+            </div>
+            <div class="col-md-4 mb-3">
+                <p style="color: #718096; font-size: 13px; font-weight: 600; margin-bottom: 5px;">Payment Terms</p>
+                <p style="color: #2d3748; font-weight: 600;">{{ vendor.payment_terms|default:"Not specified" }}</p>
+            </div>
+            <div class="col-md-12 mb-3">
+                <p style="color: #718096; font-size: 13px; font-weight: 600; margin-bottom: 5px;">Categories</p>
+                <p style="color: #2d3748; font-weight: 600;">{{ vendor.categories|default:"Not specified" }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-md-4 mb-3">
+            <a href="{% url 'vendor-contact-create' %}?vendor={{ vendor.pk }}" style="text-decoration: none;">
+                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; padding: 20px; color: white;">
+                    <i class="fas fa-phone fa-2x mb-2"></i>
+                    <h6 style="margin: 0; font-weight: 600;">Contact Vendor</h6>
+                    <p style="margin: 0; opacity: 0.9; font-size: 14px;">Log communication</p>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-4 mb-3">
+            <a href="{% url 'payment-create' %}?vendor={{ vendor.pk }}" style="text-decoration: none;">
+                <div style="background: white; border: 2px solid #48bb78; border-radius: 12px; padding: 20px; color: #48bb78;">
+                    <i class="fas fa-credit-card fa-2x mb-2"></i>
+                    <h6 style="margin: 0; font-weight: 600;">Record Payment</h6>
+                    <p style="margin: 0; opacity: 0.9; font-size: 14px;">Add payment record</p>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-4 mb-3">
+            <a href="{% url 'delivery-create' %}?vendor={{ vendor.pk }}" style="text-decoration: none;">
+                <div style="background: white; border: 2px solid #ed8936; border-radius: 12px; padding: 20px; color: #ed8936;">
+                    <i class="fas fa-truck fa-2x mb-2"></i>
+                    <h6 style="margin: 0; font-weight: 600;">Track Delivery</h6>
+                    <p style="margin: 0; opacity: 0.9; font-size: 14px;">Add delivery tracking</p>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <!-- Tabs -->
+    <ul class="nav nav-tabs mb-3" style="border-bottom: 2px solid #e2e8f0;">
+        <li class="nav-item">
+            <a class="nav-link active" data-toggle="tab" href="#orders">
+                <i class="fas fa-shopping-cart mr-1"></i>Orders ({{ prs|length }})
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" data-toggle="tab" href="#contacts">
+                <i class="fas fa-comments mr-1"></i>Contacts ({{ contacts|length }})
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" data-toggle="tab" href="#payments">
+                <i class="fas fa-money-bill mr-1"></i>Payments ({{ payments|length }})
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" data-toggle="tab" href="#deliveries">
+                <i class="fas fa-shipping-fast mr-1"></i>Deliveries ({{ deliveries|length }})
+            </a>
+        </li>
+    </ul>
+
+    <div class="tab-content">
+        <!-- Orders Tab -->
+        <div class="tab-pane fade show active" id="orders">
+            {% if prs %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead style="background: #f8fafc;">
+                        <tr>
+                            <th>PR Number</th>
+                            <th>Category</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for pr in prs %}
+                        <tr>
+                            <td><a href="{% url 'pr-detail' pr.pk %}">{{ pr.pr_number }}</a></td>
+                            <td>{{ pr.category }}</td>
+                            <td>€{{ pr.total }}</td>
+                            <td>{{ pr.status }}</td>
+                            <td>{{ pr.date_posted|date:"M d, Y" }}</td>
+                            <td>
+                                <a href="{% url 'pr-detail' pr.pk %}" class="btn btn-sm btn-outline-primary">View</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-muted text-center py-4">No orders yet</p>
+            {% endif %}
+        </div>
+
+        <!-- Contacts Tab -->
+        <div class="tab-pane fade" id="contacts">
+            {% if contacts %}
+            {% for contact in contacts %}
+            <div class="mb-3 p-3" style="background: #f8fafc; border-radius: 8px;">
+                <div class="d-flex justify-content-between">
+                    <h6 style="color: #2d3748; font-weight: 600;">{{ contact.subject }}</h6>
+                    <span class="badge badge-secondary">{{ contact.contact_type }}</span>
+                </div>
+                <p style="color: #718096; font-size: 14px; margin: 10px 0;">{{ contact.message }}</p>
+                <small class="text-muted">
+                    <i class="fas fa-user mr-1"></i>{{ contact.contacted_by.username }} - 
+                    <i class="fas fa-calendar mr-1"></i>{{ contact.contact_date|date:"M d, Y" }}
+                </small>
+            </div>
+            {% endfor %}
+            {% else %}
+            <p class="text-muted text-center py-4">No contact history</p>
+            {% endif %}
+        </div>
+
+        <!-- Payments Tab -->
+        <div class="tab-pane fade" id="payments">
+            {% if payments %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead style="background: #f8fafc;">
+                        <tr>
+                            <th>PR Number</th>
+                            <th>Amount</th>
+                            <th>Method</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                            <th>Reference</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for payment in payments %}
+                        <tr>
+                            <td><a href="{% url 'pr-detail' payment.pr.pk %}">{{ payment.pr.pr_number }}</a></td>
+                            <td>€{{ payment.amount }}</td>
+                            <td>{{ payment.payment_method }}</td>
+                            <td>{{ payment.payment_date|date:"M d, Y" }}</td>
+                            <td>{{ payment.status }}</td>
+                            <td>{{ payment.reference_number|default:"-" }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-muted text-center py-4">No payment records</p>
+            {% endif %}
+        </div>
+
+        <!-- Deliveries Tab -->
+        <div class="tab-pane fade" id="deliveries">
+            {% if deliveries %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead style="background: #f8fafc;">
+                        <tr>
+                            <th>PR Number</th>
+                            <th>Tracking Number</th>
+                            <th>Carrier</th>
+                            <th>Status</th>
+                            <th>Shipped Date</th>
+                            <th>Expected Delivery</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for delivery in deliveries %}
+                        <tr>
+                            <td><a href="{% url 'pr-detail' delivery.pr.pk %}">{{ delivery.pr.pr_number }}</a></td>
+                            <td>{{ delivery.tracking_number|default:"-" }}</td>
+                            <td>{{ delivery.carrier|default:"-" }}</td>
+                            <td>{{ delivery.status }}</td>
+                            <td>{{ delivery.shipped_date|date:"M d, Y"|default:"-" }}</td>
+                            <td>{{ delivery.expected_delivery_date|date:"M d, Y"|default:"-" }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-muted text-center py-4">No delivery records</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% endblock content %}

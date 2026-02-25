@@ -1,0 +1,407 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" type="text/css" href="{% static 'prs/main.css' %}">
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background-attachment: fixed;
+            color: #333;
+        }
+        
+        .bg-gradient-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .navbar {
+            padding: 1rem 0;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+        }
+        
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+            letter-spacing: -0.5px;
+        }
+        
+        .navbar-nav .nav-link {
+            font-weight: 500;
+            padding: 0.5rem 1rem !important;
+            transition: all 0.3s ease;
+            border-radius: 8px;
+            margin: 0 2px;
+        }
+        
+        .navbar-nav .nav-link:hover {
+            background: rgba(255,255,255,0.15);
+            transform: translateY(-2px);
+        }
+        
+        .main-content {
+            padding-top: 100px;
+            padding-bottom: 50px;
+        }
+        
+        .content-card {
+            background: rgba(255,255,255,0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+            padding: 30px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+            transition: transform 0.3s ease;
+        }
+        
+        .content-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .control-card {
+            background: rgba(255,255,255,0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+            padding: 25px;
+            backdrop-filter: blur(10px);
+            border: none;
+        }
+        
+        .control-card legend {
+            color: #764ba2;
+            font-weight: 700;
+            font-size: 1.3rem;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #667eea;
+            margin-bottom: 20px;
+        }
+        
+        .user-welcome {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .list-group-item-light {
+            background: transparent;
+            border: none;
+            padding: 10px 0;
+            border-radius: 0 !important;
+            transition: all 0.3s ease;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+        }
+        
+        .list-group-item-light:last-child {
+            border-bottom: none;
+        }
+        
+        .list-group-item-light:hover {
+            background: linear-gradient(135deg, #f5f7fa 0%, #e9eef5 100%);
+            transform: translateX(5px);
+        }
+        
+        .list-group-item-light a {
+            color: #555;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .list-group-item-light a i {
+            color: #667eea;
+            width: 20px;
+            text-align: center;
+        }
+        
+        .list-group-item-light:hover a {
+            color: #764ba2;
+        }
+        
+        .btn-link {
+            color: white !important;
+            text-decoration: none !important;
+            font-weight: 500;
+            padding: 0.5rem 1rem !important;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-link:hover {
+            background: rgba(255,255,255,0.15);
+            transform: translateY(-2px);
+            text-decoration: none !important;
+        }
+        
+        .alert {
+            border-radius: 15px;
+            border: none;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            animation: slideIn 0.5s ease;
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateY(-20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 10px;
+            padding: 10px 25px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102,126,234,0.3);
+        }
+        
+        .btn-outline-primary {
+            border: 2px solid #667eea;
+            color: #667eea;
+            border-radius: 10px;
+            padding: 10px 25px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-outline-primary:hover {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-color: transparent;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102,126,234,0.3);
+        }
+        
+        .text-muted {
+            color: #6c757d !important;
+            font-weight: 500;
+        }
+        
+        .badge-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-weight: 500;
+        }
+        
+        .footer {
+            background: rgba(255,255,255,0.95);
+            border-radius: 20px 20px 0 0;
+            padding: 30px 0;
+            margin-top: 50px;
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.05);
+        }
+        
+        @media (max-width: 768px) {
+            .navbar-nav .nav-link {
+                padding: 0.5rem !important;
+            }
+            
+            .main-content {
+                padding-top: 80px;
+            }
+            
+            .content-card, .control-card {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="site-header">
+        <nav class="navbar navbar-expand-md navbar-dark fixed-top">
+            <div class="container">
+                <a class="navbar-brand" href="{% if user.is_authenticated %}{% url 'dashboard' %}{% else %}{% url 'prs-home' %}{% endif %}">
+                    <i class="fas fa-tasks mr-2"></i>PR Management System
+                </a>
+                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarToggle" aria-controls="navbarToggle" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarToggle">
+                    <div class="navbar-nav mr-auto">
+                        {% if user.is_authenticated %}
+                            <a class="nav-item nav-link" href="{% url 'dashboard' %}">
+                                <i class="fas fa-home mr-1"></i>Dashboard
+                            </a>
+                            {% if user.profile.is_requester %}
+                            <a class="nav-item nav-link" href="{% url 'pr-create' %}">
+                                <i class="fas fa-plus-circle mr-1"></i>New Request
+                            </a>
+                            {% endif %}
+                            {% if user.profile.is_buyer or user.profile.is_admin %}
+                            <a class="nav-item nav-link" href="{% url 'vendor-list' %}">
+                                <i class="fas fa-store mr-1"></i>Vendors
+                            </a>
+                            {% endif %}
+                            {% if user.profile.is_admin %}
+                            <a class="nav-item nav-link" href="{% url 'vendor-approval-list' %}">
+                                <i class="fas fa-user-check mr-1"></i>Approvals
+                            </a>
+                            {% endif %}
+                        {% else %}
+                            <a class="nav-item nav-link" href="#features">
+                                <i class="fas fa-star mr-1"></i>Features
+                            </a>
+                            <a class="nav-item nav-link" href="#services">
+                                <i class="fas fa-briefcase mr-1"></i>Services
+                            </a>
+                            <a class="nav-item nav-link" href="#contact">
+                                <i class="fas fa-envelope mr-1"></i>Contact
+                            </a>
+                        {% endif %}
+                    </div>
+                    <!-- Navbar Right Side -->
+                    <div class="navbar-nav">
+                        {% if user.is_authenticated %}
+                            <a class="nav-item nav-link" href="{% url 'profile' %}">
+                                <i class="fas fa-user-circle mr-1"></i>{{ user.username }}
+                            </a>
+                            <form method="POST" action="{% url 'logout' %}" style="display:inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn-link">
+                                    <i class="fas fa-sign-out-alt mr-1"></i>Logout
+                                </button>
+                            </form>
+                        {% else %}
+                            <a class="nav-item nav-link" href="{% url 'login' %}">
+                                <i class="fas fa-sign-in-alt mr-1"></i>Login
+                            </a>
+                            <a class="nav-item nav-link" href="{% url 'register' %}" style="background: rgba(255,255,255,0.2); border-radius: 8px; margin-left: 5px;">
+                                <i class="fas fa-user-plus mr-1"></i>Register
+                            </a>
+                            <a class="nav-item nav-link" href="{% url 'vendor-register' %}" style="background: rgba(255,255,255,0.15); border-radius: 8px; margin-left: 5px;">
+                                <i class="fas fa-store mr-1"></i>Vendor Signup
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main role="main" class="container main-content">
+        <div class="row">
+            <div class="col-md-12">
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            <i class="fas 
+                                {% if message.tags == 'success' %}
+                                    fa-check-circle
+                                {% elif message.tags == 'error' %}
+                                    fa-exclamation-circle
+                                {% elif message.tags == 'warning' %}
+                                    fa-exclamation-triangle
+                                {% else %}
+                                    fa-info-circle
+                                {% endif %}
+                            mr-2"></i>
+                            {{ message }}
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+                
+                <div class="content-card">
+                    {% block content %}{% endblock %}
+                </div>
+            </div>
+        </div>
+    </main>
+
+    {% if not user.username %}
+        <footer class="footer mt-5">
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h5><i class="fas fa-tasks mr-2"></i>PR Management System</h5>
+                        <p class="text-muted">Streamline your purchase request workflow with our modern management system.</p>
+                    </div>
+                    <div class="col-md-6 text-right">
+                        <p class="text-muted mb-0">&copy; 2026 PR Management System. All rights reserved.</p>
+                    </div>
+                </div>
+            </div>
+        </footer>
+    {% endif %}
+
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+    
+    <!-- Optional custom JavaScript -->
+    <script>
+        $(document).ready(function() {
+            // Auto-dismiss alerts after 5 seconds
+            setTimeout(function() {
+                $('.alert').fadeOut('slow');
+            }, 5000);
+            
+            // Add active class to current navigation item
+            var currentUrl = window.location.pathname;
+            $('.navbar-nav .nav-link').each(function() {
+                if ($(this).attr('href') === currentUrl) {
+                    $(this).addClass('active');
+                }
+            });
+            
+            // Smooth scrolling for anchor links
+            $('a[href^="#"]').on('click', function(e) {
+                var target = $(this.getAttribute('href'));
+                if(target.length) {
+                    e.preventDefault();
+                    $('html, body').stop().animate({
+                        scrollTop: target.offset().top - 100
+                    }, 1000);
+                }
+            });
+            
+            // Add scroll animation for sections
+            $(window).scroll(function() {
+                $('.feature-card, .service-item, .contact-item').each(function() {
+                    var elementTop = $(this).offset().top;
+                    var elementBottom = elementTop + $(this).outerHeight();
+                    var viewportTop = $(window).scrollTop();
+                    var viewportBottom = viewportTop + $(window).height();
+                    
+                    if (elementBottom > viewportTop && elementTop < viewportBottom) {
+                        $(this).addClass('animate-in');
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

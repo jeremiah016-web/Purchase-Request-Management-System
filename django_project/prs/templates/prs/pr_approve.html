@@ -1,0 +1,146 @@
+{% extends "prs/layout.html" %}
+{% load crispy_forms_tags %}
+{% block content %}
+
+<div class="content-card" style="max-width: 700px; margin: 0 auto;">
+    <!-- Header -->
+    <div class="text-center mb-4">
+        {% if action == 'approve' %}
+        <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #48bb78 0%, #38a169 100%); border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; box-shadow: 0 15px 30px rgba(72,187,120,0.3);">
+            <i class="fas fa-check-circle text-white" style="font-size: 40px;"></i>
+        </div>
+        <h2 style="color: #2d3748; font-weight: 700; margin-bottom: 10px;">Approve Purchase Request</h2>
+        <p class="text-muted">Approve PR #{{ object.pr_number }}</p>
+        {% else %}
+        <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #f56565 0%, #c53030 100%); border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; box-shadow: 0 15px 30px rgba(245,101,101,0.3);">
+            <i class="fas fa-times-circle text-white" style="font-size: 40px;"></i>
+        </div>
+        <h2 style="color: #2d3748; font-weight: 700; margin-bottom: 10px;">Reject Purchase Request</h2>
+        <p class="text-muted">Reject PR #{{ object.pr_number }}</p>
+        {% endif %}
+    </div>
+
+    <!-- PR Details Card -->
+    <div style="background: #f8fafc; border-radius: 20px; padding: 25px; margin-bottom: 25px;">
+        <h5 style="color: #2d3748; font-weight: 600; margin-bottom: 20px;">
+            <i class="fas fa-info-circle mr-2" style="color: #667eea;"></i>Request Details
+        </h5>
+        
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label style="color: #718096; font-size: 13px; font-weight: 600; display: block; margin-bottom: 5px;">PR Number</label>
+                <p style="color: #2d3748; font-weight: 600; margin: 0;">{{ object.pr_number }}</p>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label style="color: #718096; font-size: 13px; font-weight: 600; display: block; margin-bottom: 5px;">Category</label>
+                <p style="color: #2d3748; margin: 0;">{{ object.category }}</p>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label style="color: #718096; font-size: 13px; font-weight: 600; display: block; margin-bottom: 5px;">Requester</label>
+                <div class="d-flex align-items-center">
+                    <img src="{{ object.author.profile.image.url }}" alt="{{ object.author.username }}" 
+                         style="width: 32px; height: 32px; border-radius: 50%; margin-right: 10px; object-fit: cover;">
+                    <span style="color: #2d3748; font-weight: 500;">{{ object.author.username }}</span>
+                </div>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label style="color: #718096; font-size: 13px; font-weight: 600; display: block; margin-bottom: 5px;">Date Submitted</label>
+                <p style="color: #2d3748; margin: 0;">{{ object.date_posted|date:"M d, Y" }}</p>
+            </div>
+            <div class="col-12">
+                <label style="color: #718096; font-size: 13px; font-weight: 600; display: block; margin-bottom: 5px;">Description</label>
+                <div style="background: white; border-radius: 12px; padding: 15px; border: 1px solid #e2e8f0;">
+                    <p style="color: #2d3748; margin: 0; white-space: pre-wrap;">{{ object.description }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Approval/Rejection Form -->
+    <div style="background: white; border-radius: 20px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.03);">
+        <form method="POST">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label style="font-weight: 600; color: #2d3748; margin-bottom: 10px;">
+                    {% if action == 'approve' %}
+                    <i class="fas fa-comment-dots mr-2" style="color: #48bb78;"></i>
+                    Approval Notes (Optional)
+                    {% else %}
+                    <i class="fas fa-comment-dots mr-2" style="color: #f56565;"></i>
+                    Rejection Reason (Required)
+                    {% endif %}
+                </label>
+                <textarea name="description" class="form-control" rows="4" 
+                          style="border-radius: 12px; border: 1px solid #e2e8f0; padding: 15px;"
+                          placeholder="{% if action == 'approve' %}Add any notes about this approval...{% else %}Please provide a reason for rejection...{% endif %}"
+                          {% if action == 'reject' %}required{% endif %}></textarea>
+                <small class="form-text text-muted">
+                    {% if action == 'approve' %}
+                    This note will be added to the PR description and the requester will be notified.
+                    {% else %}
+                    The requester will see this reason. Be clear and constructive.
+                    {% endif %}
+                </small>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="d-flex justify-content-between align-items-center mt-4">
+                <a href="{% url 'buyer-dashboard' %}" class="btn btn-light px-4 py-2" style="border-radius: 12px; border: 1px solid #e2e8f0; font-weight: 600;">
+                    <i class="fas fa-arrow-left mr-2"></i>Cancel
+                </a>
+                
+                {% if action == 'approve' %}
+                <button type="submit" class="btn btn-success px-5 py-2" style="border-radius: 12px; font-weight: 600; box-shadow: 0 10px 20px rgba(72,187,120,0.2);">
+                    <i class="fas fa-check mr-2"></i>Approve Request
+                </button>
+                {% else %}
+                <button type="submit" class="btn btn-danger px-5 py-2" style="border-radius: 12px; font-weight: 600; box-shadow: 0 10px 20px rgba(245,101,101,0.2);">
+                    <i class="fas fa-times mr-2"></i>Reject Request
+                </button>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+
+    <!-- Warning Message -->
+    {% if action == 'approve' %}
+    <div class="alert alert-success mt-4" style="border-radius: 16px; border: none; background: #f0fff4; color: #22543d;">
+        <div class="d-flex align-items-center">
+            <i class="fas fa-info-circle mr-3" style="font-size: 20px;"></i>
+            <div>
+                <strong>What happens next?</strong><br>
+                <small>The PR status will be changed to "Approval" and the requester will be able to see your approval notes.</small>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="alert alert-danger mt-4" style="border-radius: 16px; border: none; background: #fff5f5; color: #742a2a;">
+        <div class="d-flex align-items-center">
+            <i class="fas fa-exclamation-triangle mr-3" style="font-size: 20px;"></i>
+            <div>
+                <strong>Important:</strong><br>
+                <small>The PR will be closed and the requester will be notified. This action can be reversed by an admin if needed.</small>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+    .btn-success:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 15px 30px rgba(72,187,120,0.3) !important;
+    }
+    
+    .btn-danger:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 15px 30px rgba(245,101,101,0.3) !important;
+    }
+    
+    .btn {
+        transition: all 0.3s ease;
+    }
+</style>
+
+{% endblock content %}

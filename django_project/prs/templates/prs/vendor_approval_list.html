@@ -1,0 +1,156 @@
+{% extends "prs/layout.html" %}
+{% block content %}
+
+<div class="content-card">
+    <!-- Header -->
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h2 style="color: #2d3748; font-weight: 700; margin-bottom: 5px;">
+                <i class="fas fa-user-check mr-2" style="color: #667eea;"></i>Vendor Approvals
+            </h2>
+            <p class="text-muted mb-0">Review and approve vendor registrations</p>
+        </div>
+        <div>
+            <a href="{% url 'vendor-list' %}" class="btn btn-outline-primary" style="border-radius: 8px;">
+                <i class="fas fa-list mr-2"></i>All Vendors
+            </a>
+        </div>
+    </div>
+
+    <!-- Pending Vendors -->
+    <div style="background: white; border-radius: 15px; padding: 30px; box-shadow: 0 5px 15px rgba(0,0,0,0.05);">
+        <div class="d-flex align-items-center justify-content-between mb-4">
+            <h4 style="color: #2d3748; font-weight: 600; margin: 0;">
+                <i class="fas fa-clock mr-2" style="color: #f6ad55;"></i>
+                Pending Approvals
+            </h4>
+            <span class="badge badge-warning" style="font-size: 14px; padding: 8px 15px;">{{ vendors|length }} Pending</span>
+        </div>
+
+        {% if vendors %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead style="background: #f8fafc;">
+                    <tr>
+                        <th style="border: none; color: #4a5568; font-weight: 600; padding: 15px;">Business Name</th>
+                        <th style="border: none; color: #4a5568; font-weight: 600; padding: 15px;">Contact Person</th>
+                        <th style="border: none; color: #4a5568; font-weight: 600; padding: 15px;">Email</th>
+                        <th style="border: none; color: #4a5568; font-weight: 600; padding: 15px;">Phone</th>
+                        <th style="border: none; color: #4a5568; font-weight: 600; padding: 15px;">Registration Date</th>
+                        <th style="border: none; color: #4a5568; font-weight: 600; padding: 15px;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for vendor in vendors %}
+                    <tr style="border-bottom: 1px solid #e2e8f0;">
+                        <td style="padding: 15px; vertical-align: middle;">
+                            <strong style="color: #2d3748;">{{ vendor.name }}</strong>
+                            {% if vendor.user %}
+                            <br><small class="text-muted">User: {{ vendor.user.username }}</small>
+                            {% endif %}
+                        </td>
+                        <td style="padding: 15px; vertical-align: middle;">{{ vendor.contact_person|default:"-" }}</td>
+                        <td style="padding: 15px; vertical-align: middle;">
+                            {% if vendor.email %}
+                                <a href="mailto:{{ vendor.email }}" style="color: #667eea;">{{ vendor.email }}</a>
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        <td style="padding: 15px; vertical-align: middle;">{{ vendor.phone|default:"-" }}</td>
+                        <td style="padding: 15px; vertical-align: middle; color: #718096;">
+                            {{ vendor.date_added|date:"M d, Y" }}
+                        </td>
+                        <td style="padding: 15px; vertical-align: middle;">
+                            <button type="button" class="btn btn-sm btn-outline-primary" data-toggle="modal" data-target="#vendorModal{{ vendor.pk }}" style="border-radius: 8px;">
+                                <i class="fas fa-eye mr-1"></i>Review
+                            </button>
+                        </td>
+                    </tr>
+
+                    <!-- Vendor Detail Modal -->
+                    <div class="modal fade" id="vendorModal{{ vendor.pk }}" tabindex="-1" role="dialog">
+                        <div class="modal-dialog modal-lg" role="document">
+                            <div class="modal-content" style="border-radius: 15px;">
+                                <div class="modal-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 15px 15px 0 0;">
+                                    <h5 class="modal-title">
+                                        <i class="fas fa-store mr-2"></i>{{ vendor.name }}
+                                    </h5>
+                                    <button type="button" class="close text-white" data-dismiss="modal">
+                                        <span>&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body" style="padding: 30px;">
+                                    <h6 style="color: #2d3748; font-weight: 600; margin-bottom: 15px;">Contact Information</h6>
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <p style="color: #718096; font-size: 13px; margin-bottom: 5px;">Contact Person</p>
+                                            <p style="color: #2d3748; font-weight: 600;">{{ vendor.contact_person|default:"Not provided" }}</p>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <p style="color: #718096; font-size: 13px; margin-bottom: 5px;">Email</p>
+                                            <p style="color: #2d3748; font-weight: 600;">{{ vendor.email|default:"Not provided" }}</p>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <p style="color: #718096; font-size: 13px; margin-bottom: 5px;">Phone</p>
+                                            <p style="color: #2d3748; font-weight: 600;">{{ vendor.phone|default:"Not provided" }}</p>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <p style="color: #718096; font-size: 13px; margin-bottom: 5px;">Website</p>
+                                            <p style="color: #2d3748; font-weight: 600;">{{ vendor.website|default:"Not provided" }}</p>
+                                        </div>
+                                    </div>
+
+                                    <h6 style="color: #2d3748; font-weight: 600; margin-bottom: 15px; margin-top: 20px;">Business Details</h6>
+                                    <div class="row mb-3">
+                                        <div class="col-md-12">
+                                            <p style="color: #718096; font-size: 13px; margin-bottom: 5px;">Address</p>
+                                            <p style="color: #4a5568; white-space: pre-wrap;">{{ vendor.address|default:"Not provided" }}</p>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <p style="color: #718096; font-size: 13px; margin-bottom: 5px;">Tax ID</p>
+                                            <p style="color: #2d3748; font-weight: 600;">{{ vendor.tax_id|default:"Not provided" }}</p>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <p style="color: #718096; font-size: 13px; margin-bottom: 5px;">Bank Account</p>
+                                            <p style="color: #2d3748; font-weight: 600;">{{ vendor.bank_account|default:"Not provided" }}</p>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <p style="color: #718096; font-size: 13px; margin-bottom: 5px;">Payment Terms</p>
+                                            <p style="color: #2d3748; font-weight: 600;">{{ vendor.payment_terms|default:"Not specified" }}</p>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <p style="color: #718096; font-size: 13px; margin-bottom: 5px;">Categories</p>
+                                            <p style="color: #2d3748; font-weight: 600;">{{ vendor.categories|default:"Not specified" }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="modal-footer" style="border-top: 2px solid #f8fafc; padding: 20px 30px;">
+                                    <a href="{% url 'vendor-reject' vendor.pk %}" class="btn btn-danger" style="border-radius: 8px;" 
+                                       onclick="return confirm('Are you sure you want to reject this vendor?');">
+                                        <i class="fas fa-times mr-2"></i>Reject
+                                    </a>
+                                    <a href="{% url 'vendor-approve' vendor.pk %}" class="btn btn-success" style="border-radius: 8px;">
+                                        <i class="fas fa-check mr-2"></i>Approve
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <div style="width: 80px; height: 80px; background: #f8fafc; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
+                <i class="fas fa-check-circle" style="color: #48bb78; font-size: 36px;"></i>
+            </div>
+            <h5 style="color: #2d3748; font-weight: 600; margin-bottom: 10px;">All Caught Up!</h5>
+            <p style="color: #718096; margin-bottom: 0;">No pending vendor approvals at this time.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock content %}
