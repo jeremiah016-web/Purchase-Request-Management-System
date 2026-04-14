@@ -225,15 +225,23 @@ Purchase-Request-Management-System/
 <h3>Demo</h3>
 
 <h4> Landing Page <h4> <p>Public home with features and contact info</p>
+<img src="images/land.png">
 <h4> Requester Dashboard <h4> <p>PR list with payment status and Pay/Track buttons </p>
+<img src="images/request.png">
 <h4>PR Creation Step 1 <h4> <p>Category cards grid (e-commerce style) </p>
+<img src="images/catogry.png">
 <h4> PR Creation Step 2<h4> <p>Item type grid with icons </p>
+<img src="images/item.png">
 <h4> PR Creation Step 3<h4> <p>Details form with selected category badge</p>
+<img src="images/details.png">
 <h4>Payment Page <h4> <p>Order summary + UPI/Card/NetBanking/Wallet</p>
+<img src="images/payment.png">
 <h4> Tracking Page <h4> <p>Live timeline with real-time status updates </p>
+<img src="images/tracking.png">
 <h4> Vendor Dashboard<h4><p>Ready-to-ship orders, payment account, available PRs </p>
-<h4>Ship Order<h4><p>Tracking number, carrier, expected delivery date </p>
+<img src="images/vendor.png">
 <h4>Admin Dashboard <p>System-wide stats, recent PRs, vendor approvals </p>
+<img src="images/admin.png">
 
 ---
 
