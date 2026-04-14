@@ -62,10 +62,12 @@
     <input type="hidden" name="item_type" id="hiddenItemType">
 
     <div class="ec-form-grid">
-      <div class="ec-form-group">
-        <label for="id_pr_number">PR Number <span class="req">*</span></label>
-        {{ form.pr_number }}
-        {% if form.pr_number.errors %}<div class="ec-error">{{ form.pr_number.errors.0 }}</div>{% endif %}
+      <div class="ec-form-group ec-full">
+        <div class="ec-pr-number-preview">
+          <i class="fas fa-hashtag"></i>
+          PR number will be auto-generated based on your category and item type
+          <span id="prNumberPreview" style="display:none;font-weight:700;color:var(--primary);"></span>
+        </div>
       </div>
       <div class="ec-form-group">
         <label for="id_quantity">Quantity <span class="req">*</span></label>
@@ -189,6 +191,17 @@
 }
 .ec-form-group textarea { min-height: 90px; resize: vertical; }
 .ec-error { font-size: 12px; color: var(--danger); }
+.ec-pr-number-preview {
+  background: var(--info-light, #eff6ff);
+  border: 1.5px dashed var(--primary, #2563eb);
+  border-radius: 8px;
+  padding: 10px 16px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
 .ec-form-actions {
   display: flex; justify-content: space-between; align-items: center;
   padding-top: 20px; border-top: 1px solid var(--card-border); margin-top: 8px;
@@ -291,6 +304,17 @@ function renderItems(category) {
   `).join('');
 }
 
+const CAT_CODES = {
+  'Construction': 'CON', 'Consulting': 'CSL', 'Facility Management': 'FAC',
+  'General Goods and Services': 'GGS', 'Information Technology': 'IT', 'Office Supplies': 'OFS',
+};
+
+function itemCode(item) {
+  const words = item.replace('&', '').trim().split(/\s+/);
+  if (words.length >= 2) return (words[0].slice(0,2) + words[1].slice(0,1)).toUpperCase();
+  return words[0].slice(0,3).toUpperCase();
+}
+
 function selectItem(item) {
   selectedItemType = item;
   document.getElementById('hiddenItemType').value = item;
@@ -300,6 +324,15 @@ function selectItem(item) {
     <span class="ec-badge"><i class="fas ${catObj ? catObj.icon : 'fa-tag'}"></i> ${selectedCategory}</span>
     <span class="ec-badge" style="background:var(--success);"><i class="fas ${ITEM_ICONS[item] || 'fa-tag'}"></i> ${item}</span>
   `;
+  // Show PR number preview
+  const catCode = CAT_CODES[selectedCategory] || selectedCategory.slice(0,3).toUpperCase();
+  const itmCode = itemCode(item);
+  const year = new Date().getFullYear();
+  const preview = document.getElementById('prNumberPreview');
+  preview.textContent = `e.g. ${catCode}-${itmCode}-${year}-0001`;
+  preview.style.display = 'inline';
+  document.querySelector('.ec-pr-number-preview').innerHTML =
+    `<i class="fas fa-hashtag"></i> PR number will be auto-generated: <span style="font-weight:700;color:var(--primary);">${catCode}-${itmCode}-${year}-####</span>`;
   goToStep(3);
 }
 

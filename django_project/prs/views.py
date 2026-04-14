@@ -187,10 +187,50 @@ class PRDetailView(DetailView):
     template_name = 'prs/pr_detail.html'
     context_object_name = 'pr'
 
+def generate_pr_number(category, item_type):
+    """Generate PR number based on category and item type: CAT-ITEM-YEAR-SEQUENCE"""
+    from django.utils import timezone
+
+    # Category abbreviations
+    cat_codes = {
+        'Construction': 'CON',
+        'Consulting': 'CSL',
+        'Facility Management': 'FAC',
+        'General Goods and Services': 'GGS',
+        'Information Technology': 'IT',
+        'Office Supplies': 'OFS',
+    }
+
+    # Item type abbreviations (first 3 meaningful letters, uppercased)
+    def item_code(item):
+        words = item.replace('&', '').split()
+        if len(words) >= 2:
+            return (words[0][:2] + words[1][:1]).upper()
+        return words[0][:3].upper()
+
+    cat_code = cat_codes.get(category, category[:3].upper())
+    itm_code = item_code(item_type)
+    year = timezone.now().year
+
+    prefix = f"{cat_code}-{itm_code}-{year}-"
+
+    # Find the highest sequence for this prefix
+    last = PR.objects.filter(pr_number__startswith=prefix).order_by('-pr_number').first()
+    if last:
+        try:
+            seq = int(last.pr_number.split('-')[-1]) + 1
+        except (ValueError, IndexError):
+            seq = 1
+    else:
+        seq = 1
+
+    return f"{prefix}{seq:04d}"
+
+
 class PRCreateView(LoginRequiredMixin, CreateView):
     model = PR
     template_name = 'prs/pr_new.html'
-    fields = ['pr_number', 'category', 'item_type', 'items_description', 'quantity', 'specifications', 'description']
+    fields = ['category', 'item_type', 'items_description', 'quantity', 'specifications', 'description']
 
     def dispatch(self, request, *args, **kwargs):
         # Only requesters can create PRs
@@ -234,10 +274,13 @@ class PRCreateView(LoginRequiredMixin, CreateView):
 
     def form_valid(self, form):
         form.instance.author = self.request.user
-        # Set status to 'Open' for requesters
         form.instance.status = 'Open'
-        # Price will be set by vendor later
         form.instance.total = 0.00
+        # Auto-generate PR number based on category and item type
+        form.instance.pr_number = generate_pr_number(
+            form.instance.category,
+            form.instance.item_type
+        )
         return super().form_valid(form)
 
 
