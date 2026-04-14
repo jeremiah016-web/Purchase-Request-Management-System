@@ -1,158 +1,104 @@
 {% extends "prs/layout.html" %}
+{% block page_title %}Vendors{% endblock %}
 {% block content %}
 
-<div class="content-card">
-    <!-- Header -->
-    <div class="d-flex align-items-center justify-content-between mb-4">
-        <div>
-            <h2 style="color: #2d3748; font-weight: 700; margin-bottom: 5px;">
-                <i class="fas fa-store mr-2" style="color: #667eea;"></i>Vendor Management
-            </h2>
-            <p class="text-muted mb-0">Manage vendors and suppliers</p>
-        </div>
-        <div>
-            {% if user.profile.is_admin %}
-            <a href="{% url 'vendor-create' %}" class="btn btn-primary" style="border-radius: 8px;">
-                <i class="fas fa-plus mr-2"></i>Add Vendor
-            </a>
-            {% endif %}
-        </div>
-    </div>
-
-    <!-- Search and Filter -->
-    <div class="mb-4">
-        <form method="GET" class="row">
-            <div class="col-md-6 mb-2">
-                <input type="text" name="search" class="form-control" placeholder="Search vendors..." 
-                       value="{{ request.GET.search }}" style="border-radius: 8px;">
-            </div>
-            <div class="col-md-4 mb-2">
-                <select name="status" class="form-control" style="border-radius: 8px;">
-                    <option value="">All Status</option>
-                    <option value="Active" {% if request.GET.status == 'Active' %}selected{% endif %}>Active</option>
-                    <option value="Inactive" {% if request.GET.status == 'Inactive' %}selected{% endif %}>Inactive</option>
-                    <option value="Blacklisted" {% if request.GET.status == 'Blacklisted' %}selected{% endif %}>Blacklisted</option>
-                </select>
-            </div>
-            <div class="col-md-2 mb-2">
-                <button type="submit" class="btn btn-primary btn-block" style="border-radius: 8px;">
-                    <i class="fas fa-search mr-1"></i>Search
-                </button>
-            </div>
-        </form>
-    </div>
-
-    <!-- Vendors List -->
-    <div style="background: white; border-radius: 15px; padding: 30px; box-shadow: 0 5px 15px rgba(0,0,0,0.05);">
-        {% if vendors %}
-        <div class="table-responsive">
-            <table class="table table-hover">
-                <thead style="background: #f8fafc;">
-                    <tr>
-                        <th style="border: none; color: #4a5568; font-weight: 600; padding: 15px;">Vendor Name</th>
-                        <th style="border: none; color: #4a5568; font-weight: 600; padding: 15px;">Contact Person</th>
-                        <th style="border: none; color: #4a5568; font-weight: 600; padding: 15px;">Email</th>
-                        <th style="border: none; color: #4a5568; font-weight: 600; padding: 15px;">Phone</th>
-                        <th style="border: none; color: #4a5568; font-weight: 600; padding: 15px;">Status</th>
-                        <th style="border: none; color: #4a5568; font-weight: 600; padding: 15px;">Rating</th>
-                        <th style="border: none; color: #4a5568; font-weight: 600; padding: 15px;">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for vendor in vendors %}
-                    <tr style="border-bottom: 1px solid #e2e8f0;">
-                        <td style="padding: 15px; vertical-align: middle;">
-                            <a href="{% url 'vendor-detail' vendor.pk %}" style="color: #667eea; font-weight: 600; text-decoration: none;">
-                                {{ vendor.name }}
-                            </a>
-                        </td>
-                        <td style="padding: 15px; vertical-align: middle;">{{ vendor.contact_person|default:"-" }}</td>
-                        <td style="padding: 15px; vertical-align: middle;">{{ vendor.email|default:"-" }}</td>
-                        <td style="padding: 15px; vertical-align: middle;">{{ vendor.phone|default:"-" }}</td>
-                        <td style="padding: 15px; vertical-align: middle;">
-                            {% if vendor.status == 'Active' %}
-                                <span class="badge" style="background: #c6f6d5; color: #22543d; padding: 6px 12px;">
-                                    <i class="fas fa-check-circle mr-1"></i>{{ vendor.status }}
-                                </span>
-                            {% elif vendor.status == 'Inactive' %}
-                                <span class="badge badge-secondary" style="padding: 6px 12px;">
-                                    <i class="fas fa-pause-circle mr-1"></i>{{ vendor.status }}
-                                </span>
-                            {% else %}
-                                <span class="badge" style="background: #fed7d7; color: #c53030; padding: 6px 12px;">
-                                    <i class="fas fa-ban mr-1"></i>{{ vendor.status }}
-                                </span>
-                            {% endif %}
-                        </td>
-                        <td style="padding: 15px; vertical-align: middle;">
-                            <span style="color: #ed8936;">
-                                {% for i in "12345" %}
-                                    {% if forloop.counter <= vendor.rating %}
-                                        <i class="fas fa-star"></i>
-                                    {% else %}
-                                        <i class="far fa-star"></i>
-                                    {% endif %}
-                                {% endfor %}
-                            </span>
-                        </td>
-                        <td style="padding: 15px; vertical-align: middle;">
-                            <a href="{% url 'vendor-detail' vendor.pk %}" class="btn btn-sm btn-outline-primary" style="border-radius: 8px;">
-                                <i class="fas fa-eye mr-1"></i>View
-                            </a>
-                            {% if user.profile.is_admin %}
-                            <a href="{% url 'vendor-update' vendor.pk %}" class="btn btn-sm btn-outline-secondary" style="border-radius: 8px;">
-                                <i class="fas fa-edit mr-1"></i>Edit
-                            </a>
-                            {% endif %}
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-
-        <!-- Pagination -->
-        {% if is_paginated %}
-        <nav class="mt-4">
-            <ul class="pagination justify-content-center">
-                {% if page_obj.has_previous %}
-                <li class="page-item">
-                    <a class="page-link" href="?page=1">First</a>
-                </li>
-                <li class="page-item">
-                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
-                </li>
-                {% endif %}
-                
-                <li class="page-item active">
-                    <span class="page-link">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
-                </li>
-                
-                {% if page_obj.has_next %}
-                <li class="page-item">
-                    <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
-                </li>
-                <li class="page-item">
-                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Last</a>
-                </li>
-                {% endif %}
-            </ul>
-        </nav>
-        {% endif %}
-
-        {% else %}
-        <div class="text-center py-5">
-            <div style="width: 80px; height: 80px; background: #f8fafc; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
-                <i class="fas fa-store" style="color: #a0aec0; font-size: 36px;"></i>
-            </div>
-            <h5 style="color: #2d3748; font-weight: 600; margin-bottom: 10px;">No Vendors Found</h5>
-            <p style="color: #718096; margin-bottom: 20px;">Add your first vendor to get started.</p>
-            <a href="{% url 'vendor-create' %}" class="btn btn-primary" style="border-radius: 8px;">
-                <i class="fas fa-plus mr-2"></i>Add Vendor
-            </a>
-        </div>
-        {% endif %}
-    </div>
+<div class="page-header">
+  <div class="page-header-left">
+    <h1>Vendor Management</h1>
+    <p>Manage vendors and suppliers</p>
+  </div>
+  {% if user.profile.is_admin %}
+  <a href="{% url 'vendor-create' %}" class="btn btn-primary">
+    <i class="fas fa-plus"></i> Add Vendor
+  </a>
+  {% endif %}
 </div>
 
-{% endblock content %}
+<div class="card" style="margin-bottom:20px;">
+  <div class="card-body">
+    <form method="GET" style="display:flex;gap:12px;flex-wrap:wrap;">
+      <input type="text" name="search" class="form-control" placeholder="Search vendors..."
+             value="{{ request.GET.search }}" style="flex:1;min-width:200px;">
+      <select name="status" class="form-control" style="width:160px;">
+        <option value="">All Status</option>
+        <option value="Active" {% if request.GET.status == 'Active' %}selected{% endif %}>Active</option>
+        <option value="Inactive" {% if request.GET.status == 'Inactive' %}selected{% endif %}>Inactive</option>
+        <option value="Blacklisted" {% if request.GET.status == 'Blacklisted' %}selected{% endif %}>Blacklisted</option>
+      </select>
+      <button type="submit" class="btn btn-primary"><i class="fas fa-search"></i> Search</button>
+    </form>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-body" style="padding:0;">
+    {% if vendors %}
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Vendor Name</th>
+          <th>Contact</th>
+          <th>Email</th>
+          <th>Phone</th>
+          <th>Status</th>
+          <th>Rating</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for vendor in vendors %}
+        <tr>
+          <td><a href="{% url 'vendor-detail' vendor.pk %}">{{ vendor.name }}</a></td>
+          <td>{{ vendor.contact_person|default:"—" }}</td>
+          <td>{{ vendor.email|default:"—" }}</td>
+          <td>{{ vendor.phone|default:"—" }}</td>
+          <td>
+            {% if vendor.status == 'Active' %}<span class="badge badge-green"><i class="fas fa-circle" style="font-size:7px;"></i> Active</span>
+            {% elif vendor.status == 'Inactive' %}<span class="badge badge-gray">Inactive</span>
+            {% else %}<span class="badge badge-red">{{ vendor.status }}</span>{% endif %}
+          </td>
+          <td><span class="stars">{% for i in "12345" %}{% if forloop.counter <= vendor.rating %}<i class="fas fa-star"></i>{% else %}<i class="far fa-star"></i>{% endif %}{% endfor %}</span></td>
+          <td>
+            <div class="d-flex gap-2">
+              <a href="{% url 'vendor-detail' vendor.pk %}" class="btn btn-outline btn-sm">View</a>
+              {% if user.profile.is_admin %}
+              <a href="{% url 'vendor-update' vendor.pk %}" class="btn btn-outline-primary btn-sm">Edit</a>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    {% if is_paginated %}
+    <div style="padding:16px 20px;border-top:1px solid var(--card-border);">
+      <div class="pagination">
+        {% if page_obj.has_previous %}
+          <a class="page-link" href="?page=1"><i class="fas fa-angle-double-left"></i></a>
+          <a class="page-link" href="?page={{ page_obj.previous_page_number }}"><i class="fas fa-angle-left"></i></a>
+        {% endif %}
+        <span class="page-link" style="background:var(--primary);color:white;border-color:var(--primary);">
+          {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}
+        </span>
+        {% if page_obj.has_next %}
+          <a class="page-link" href="?page={{ page_obj.next_page_number }}"><i class="fas fa-angle-right"></i></a>
+          <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}"><i class="fas fa-angle-double-right"></i></a>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+
+    {% else %}
+    <div class="empty-state">
+      <div class="empty-state-icon"><i class="fas fa-store"></i></div>
+      <h4>No Vendors Found</h4>
+      <p>Add your first vendor to get started.</p>
+      {% if user.profile.is_admin %}
+      <a href="{% url 'vendor-create' %}" class="btn btn-primary"><i class="fas fa-plus"></i> Add Vendor</a>
+      {% endif %}
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

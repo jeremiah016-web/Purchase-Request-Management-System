@@ -94,6 +94,7 @@ class RequesterDashboardView(LoginRequiredMixin, ListView):
         context['my_approved_count'] = user_prs.filter(status='Approval').count()
         context['my_done_count'] = user_prs.filter(status='Done').count()
         context['my_total_count'] = user_prs.count()
+        context['my_payment_pending_count'] = user_prs.filter(price_approved=True, requester_approved_quotation=False).count()
         return context
 
 class AdminDashboardView(LoginRequiredMixin, AdminRequiredMixin, ListView):
@@ -331,10 +332,10 @@ class PRUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
                              'vendor_name', 'vendor_contact', 'payment_status', 'payment_date', 'payment_notes', 'delivery_status']:
                     if field in form.fields:
                         del form.fields[field]
-                
+
                 if 'status' in form.fields:
-                    del form.fields[field]
-                    
+                    del form.fields['status']
+
                 if pr.status != 'Open':
                     # If not Open, make all fields readonly
                     for field in form.fields:
@@ -861,6 +862,12 @@ class VendorDashboardView(LoginRequiredMixin, DetailView):
         context['pending_prs'] = vendor.pr_set.filter(status='Pending').count()
         context['approved_prs'] = vendor.pr_set.filter(status='Approval').count()
         context['total_value'] = sum(pr.total for pr in vendor.pr_set.all())
+
+        # PRs where payment is confirmed but not yet shipped
+        context['prs_to_ship'] = vendor.pr_set.filter(
+            requester_approved_quotation=True,
+            delivery_status='Not Shipped'
+        ).order_by('-date_posted')
         
         # Get payments
         context['payments'] = Payment.objects.filter(vendor=vendor).order_by('-payment_date')[:10]
@@ -882,6 +889,101 @@ class VendorApprovalListView(LoginRequiredMixin, AdminRequiredMixin, ListView):
     def get_queryset(self):
         # Show only pending vendors
         return Vendor.objects.filter(is_approved=False, status='Pending').order_by('-date_added')
+
+
+@login_required
+def vendor_profile_edit(request):
+    """Vendor edits their own profile — contact details and payment account info."""
+    try:
+        vendor = Vendor.objects.get(user=request.user)
+    except Vendor.DoesNotExist:
+        from django.contrib import messages
+        messages.error(request, 'No vendor profile found.')
+        return redirect('vendor-register')
+
+    if request.method == 'POST':
+        vendor.contact_person = request.POST.get('contact_person', '').strip()
+        vendor.phone = request.POST.get('phone', '').strip()
+        vendor.email = request.POST.get('email', '').strip()
+        vendor.address = request.POST.get('address', '').strip()
+        vendor.website = request.POST.get('website', '').strip()
+        vendor.tax_id = request.POST.get('tax_id', '').strip()
+        vendor.bank_account = request.POST.get('bank_account', '').strip()
+        vendor.account_holder = request.POST.get('account_holder', '').strip()
+        vendor.ifsc_code = request.POST.get('ifsc_code', '').strip()
+        vendor.upi_id = request.POST.get('upi_id', '').strip()
+        vendor.payment_terms = request.POST.get('payment_terms', '').strip()
+        vendor.notes = request.POST.get('notes', '').strip()
+        vendor.save()
+        from django.contrib import messages
+        messages.success(request, 'Profile updated successfully!')
+        return redirect('vendor-dashboard')
+
+    return render(request, 'prs/vendor_profile_edit.html', {'vendor': vendor})
+
+
+@login_required
+def vendor_ship_order(request, pk):
+    """Vendor marks an order as shipped after receiving payment."""
+    pr = get_object_or_404(PR, pk=pk)
+
+    # Must be the assigned vendor
+    try:
+        vendor = Vendor.objects.get(user=request.user)
+    except Vendor.DoesNotExist:
+        from django.contrib import messages
+        messages.error(request, 'Vendor profile not found.')
+        return redirect('vendor-dashboard')
+
+    if pr.vendor != vendor:
+        from django.contrib import messages
+        messages.error(request, 'This order is not assigned to you.')
+        return redirect('vendor-dashboard')
+
+    if not pr.requester_approved_quotation:
+        from django.contrib import messages
+        messages.warning(request, 'Payment has not been confirmed yet. Cannot ship.')
+        return redirect('vendor-dashboard')
+
+    if request.method == 'POST':
+        tracking_number = request.POST.get('tracking_number', '').strip()
+        carrier = request.POST.get('carrier', '').strip()
+        expected_date = request.POST.get('expected_delivery_date', '').strip()
+        notes = request.POST.get('notes', '').strip()
+
+        # Update or create delivery record
+        delivery, _ = Delivery.objects.get_or_create(pr=pr, defaults={'vendor': vendor, 'created_by': request.user})
+        delivery.vendor = vendor
+        delivery.tracking_number = tracking_number
+        delivery.carrier = carrier
+        delivery.status = 'In Transit'
+        delivery.shipped_date = timezone.now().date()
+        delivery.delivery_address = pr.delivery_address
+        delivery.recipient_name = pr.author.get_full_name() or pr.author.username
+        delivery.recipient_contact = pr.author.email
+        if expected_date:
+            from datetime import date
+            try:
+                delivery.expected_delivery_date = date.fromisoformat(expected_date)
+            except ValueError:
+                pass
+        if notes:
+            delivery.notes = notes
+        delivery.save()
+
+        # Update PR delivery status
+        pr.delivery_status = 'In Transit'
+        pr.save()
+
+        from django.contrib import messages
+        messages.success(request, f'Order {pr.pr_number} marked as shipped!')
+        return redirect('vendor-dashboard')
+
+    delivery = pr.deliveries.first()
+    return render(request, 'prs/vendor_ship_order.html', {
+        'pr': pr, 'vendor': vendor, 'delivery': delivery,
+        'today': timezone.now().date().isoformat(),
+    })
 
 
 @login_required
@@ -931,6 +1033,157 @@ def reject_vendor(request, pk):
 
 from django.http import JsonResponse
 from .models import ITEM_TYPE_CHOICES
+import uuid
+
+
+@login_required
+def pr_payment(request, pk):
+    """Requester approves quotation, enters delivery address, and makes online payment."""
+    pr = get_object_or_404(PR, pk=pk)
+
+    # Only the PR author (requester) can pay
+    if pr.author != request.user:
+        from django.contrib import messages
+        messages.error(request, 'Only the requester can approve and pay for this PR.')
+        return redirect('pr-detail', pk=pk)
+
+    # Must have an approved price
+    if not pr.price_approved or pr.total <= 0:
+        from django.contrib import messages
+        messages.error(request, 'This PR does not have an approved quotation yet.')
+        return redirect('pr-detail', pk=pk)
+
+    # Already paid
+    if pr.requester_approved_quotation:
+        from django.contrib import messages
+        messages.info(request, 'Payment already completed for this PR.')
+        return redirect('pr-tracking', pk=pk)
+
+    if request.method == 'POST':
+        delivery_address = request.POST.get('delivery_address', '').strip()
+        payment_method = request.POST.get('payment_method', '').strip()
+        card_number = request.POST.get('card_number', '').strip()
+        upi_id = request.POST.get('upi_id', '').strip()
+
+        errors = []
+        if not delivery_address:
+            errors.append('Delivery address is required.')
+        if not payment_method:
+            errors.append('Please select a payment method.')
+        if payment_method == 'card' and (not card_number or len(card_number.replace(' ', '')) < 16):
+            errors.append('Please enter a valid 16-digit card number.')
+        if payment_method == 'upi' and not upi_id:
+            errors.append('Please enter your UPI ID.')
+
+        if not errors:
+            # Simulate payment — generate a transaction ID
+            txn_id = 'TXN' + uuid.uuid4().hex[:12].upper()
+            pr.delivery_address = delivery_address
+            pr.payment_method_used = payment_method
+            pr.payment_transaction_id = txn_id
+            pr.requester_approved_quotation = True
+            pr.payment_status = 'Paid'
+            pr.payment_date = timezone.now().date()
+            pr.delivery_status = 'Not Shipped'
+            pr.save()
+
+            # Create a Delivery record so tracking works
+            Delivery.objects.get_or_create(
+                pr=pr,
+                defaults={
+                    'vendor': pr.vendor,
+                    'status': 'Not Shipped',
+                    'delivery_address': delivery_address,
+                    'recipient_name': request.user.get_full_name() or request.user.username,
+                    'recipient_contact': request.user.email,
+                    'created_by': request.user,
+                }
+            )
+
+            from django.contrib import messages
+            messages.success(request, f'Payment successful! Transaction ID: {txn_id}')
+            return redirect('pr-tracking', pk=pk)
+
+        return render(request, 'prs/pr_payment.html', {
+            'pr': pr, 'errors': errors,
+            'delivery_address': delivery_address,
+            'payment_method': payment_method,
+        })
+
+    return render(request, 'prs/pr_payment.html', {'pr': pr, 'errors': []})
+
+
+@login_required
+def pr_tracking(request, pk):
+    """Requester tracks delivery status of their PR."""
+    pr = get_object_or_404(PR, pk=pk)
+
+    # Author or admin/buyer can view tracking
+    if pr.author != request.user:
+        if not (hasattr(request.user, 'profile') and
+                (request.user.profile.is_admin() or request.user.profile.is_buyer())):
+            from django.contrib import messages
+            messages.error(request, 'You do not have permission to view this tracking.')
+            return redirect('pr-detail', pk=pk)
+
+    delivery = pr.deliveries.first()
+    return render(request, 'prs/pr_tracking.html', {'pr': pr, 'delivery': delivery})
+
+
+@login_required
+def pr_tracking_status(request, pk):
+    """AJAX endpoint — returns current delivery status as JSON for real-time polling."""
+    pr = get_object_or_404(PR, pk=pk)
+
+    if pr.author != request.user:
+        if not (hasattr(request.user, 'profile') and
+                (request.user.profile.is_admin() or request.user.profile.is_buyer())):
+            return JsonResponse({'error': 'forbidden'}, status=403)
+
+    delivery = pr.deliveries.first()
+    return JsonResponse({
+        'delivery_status': pr.delivery_status,
+        'payment_status': pr.payment_status,
+        'tracking_number': delivery.tracking_number if delivery else '',
+        'carrier': delivery.carrier if delivery else '',
+        'shipped_date': delivery.shipped_date.strftime('%B %d, %Y') if delivery and delivery.shipped_date else '',
+        'expected_delivery_date': delivery.expected_delivery_date.strftime('%B %d, %Y') if delivery and delivery.expected_delivery_date else '',
+        'actual_delivery_date': delivery.actual_delivery_date.strftime('%B %d, %Y') if delivery and delivery.actual_delivery_date else '',
+        'notes': delivery.notes if delivery else '',
+        'is_delayed': delivery.is_delayed() if delivery else False,
+    })
+
+
+def get_pr_vendor(request):
+    """AJAX: return vendor info and PR details for a selected PR."""
+    pr_id = request.GET.get('pr_id', '')
+    try:
+        pr = PR.objects.get(pk=pr_id)
+        data = {
+            'pr_number': pr.pr_number,
+            'pr_category': pr.category,
+            'pr_total': pr.total,
+            'pr_delivery_address': pr.delivery_address,
+            'pr_author_name': pr.author.get_full_name() or pr.author.username,
+            'pr_author_email': pr.author.email,
+            'vendor_id': '',
+            'vendor_name': '',
+            'vendor_email': '',
+            'vendor_phone': '',
+            'vendor_contact_person': '',
+        }
+        if pr.vendor:
+            data.update({
+                'vendor_id': pr.vendor.pk,
+                'vendor_name': pr.vendor.name,
+                'vendor_email': pr.vendor.email,
+                'vendor_phone': pr.vendor.phone,
+                'vendor_contact_person': pr.vendor.contact_person,
+            })
+        return JsonResponse(data)
+    except PR.DoesNotExist:
+        return JsonResponse({'error': 'PR not found'}, status=404)
+
 
 def get_item_types(request):
     """Return item types for selected category"""

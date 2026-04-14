@@ -1,0 +1,141 @@
+{% extends "prs/layout.html" %}
+{% block page_title %}Ship Order — {{ pr.pr_number }}{% endblock %}
+{% block content %}
+
+<div class="page-header">
+  <div class="page-header-left">
+    <h1><i class="fas fa-truck mr-2" style="color:var(--primary)"></i>Ship Order</h1>
+    <p>PR #{{ pr.pr_number }} — Enter shipping details to dispatch</p>
+  </div>
+  <a href="{% url 'vendor-dashboard' %}" class="btn btn-outline"><i class="fas fa-arrow-left"></i> Back</a>
+</div>
+
+<!-- Payment Confirmed Banner -->
+<div class="alert alert-success" style="margin-bottom:20px;">
+  <i class="fas fa-check-circle mr-2"></i>
+  <strong>Payment Received</strong> — ₹{{ pr.total }} paid via {{ pr.payment_method_used|title }}.
+  Transaction ID: <code>{{ pr.payment_transaction_id }}</code>
+</div>
+
+<div class="ship-layout">
+
+  <!-- LEFT: Ship Form -->
+  <div>
+    <div class="card">
+      <div class="card-header"><h5><i class="fas fa-shipping-fast mr-2"></i>Shipping Information</h5></div>
+      <div class="card-body">
+        <form method="POST">
+          {% csrf_token %}
+          <div class="vpe-grid">
+            <div class="vpe-group">
+              <label>Tracking Number</label>
+              <input type="text" name="tracking_number" placeholder="e.g. DTDC1234567890" value="{{ delivery.tracking_number|default:'' }}">
+              <div class="vpe-hint">Leave blank if not available yet.</div>
+            </div>
+            <div class="vpe-group">
+              <label>Carrier / Courier</label>
+              <select name="carrier">
+                <option value="">-- Select Carrier --</option>
+                <option {% if delivery and delivery.carrier == 'DTDC' %}selected{% endif %}>DTDC</option>
+                <option {% if delivery and delivery.carrier == 'Blue Dart' %}selected{% endif %}>Blue Dart</option>
+                <option {% if delivery and delivery.carrier == 'Delhivery' %}selected{% endif %}>Delhivery</option>
+                <option {% if delivery and delivery.carrier == 'FedEx' %}selected{% endif %}>FedEx</option>
+                <option {% if delivery and delivery.carrier == 'India Post' %}selected{% endif %}>India Post</option>
+                <option {% if delivery and delivery.carrier == 'Ekart' %}selected{% endif %}>Ekart</option>
+                <option {% if delivery and delivery.carrier == 'Shadowfax' %}selected{% endif %}>Shadowfax</option>
+                <option {% if delivery and delivery.carrier == 'XpressBees' %}selected{% endif %}>XpressBees</option>
+                <option {% if delivery and delivery.carrier == 'Amazon Logistics' %}selected{% endif %}>Amazon Logistics</option>
+                <option {% if delivery and delivery.carrier == 'Self Delivery' %}selected{% endif %}>Self Delivery</option>
+              </select>
+            </div>
+            <div class="vpe-group">
+              <label>Expected Delivery Date</label>
+              <input type="date" name="expected_delivery_date"
+                value="{{ delivery.expected_delivery_date|date:'Y-m-d'|default:'' }}"
+                min="{{ today }}">
+            </div>
+            <div class="vpe-group vpe-full">
+              <label>Shipping Notes</label>
+              <textarea name="notes" rows="3" placeholder="Any notes about the shipment, packaging, handling instructions...">{{ delivery.notes|default:'' }}</textarea>
+            </div>
+          </div>
+
+          <!-- Delivery Address (read-only) -->
+          <div style="background:var(--page-bg);border-radius:10px;padding:14px 16px;margin-top:16px;">
+            <div style="font-size:12px;font-weight:700;color:var(--text-muted);margin-bottom:6px;">
+              <i class="fas fa-map-marker-alt mr-1" style="color:var(--primary)"></i>DELIVER TO
+            </div>
+            <div style="font-size:14px;font-weight:600;color:var(--text-primary);">{{ pr.author.get_full_name|default:pr.author.username }}</div>
+            <div style="font-size:13px;color:var(--text-secondary);white-space:pre-wrap;margin-top:4px;">{{ pr.delivery_address }}</div>
+            {% if pr.author.email %}
+            <div style="font-size:12px;color:var(--text-muted);margin-top:6px;"><i class="fas fa-envelope mr-1"></i>{{ pr.author.email }}</div>
+            {% endif %}
+          </div>
+
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:20px;padding-top:16px;border-top:1px solid var(--card-border);">
+            <a href="{% url 'vendor-dashboard' %}" class="btn btn-outline"><i class="fas fa-times"></i> Cancel</a>
+            <button type="submit" class="btn btn-primary btn-lg">
+              <i class="fas fa-truck mr-1"></i> Confirm Shipment
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: Order Summary -->
+  <div>
+    <div class="card">
+      <div class="card-header"><h5><i class="fas fa-receipt mr-2"></i>Order Summary</h5></div>
+      <div class="card-body">
+        <div class="pay-summary-row"><span>PR Number</span><strong>{{ pr.pr_number }}</strong></div>
+        <div class="pay-summary-row"><span>Category</span><strong>{{ pr.category }}</strong></div>
+        <div class="pay-summary-row"><span>Item Type</span><strong>{{ pr.item_type }}</strong></div>
+        <div class="pay-summary-row"><span>Quantity</span><strong>{{ pr.quantity }}</strong></div>
+        <div class="pay-summary-row"><span>Requester</span><strong>{{ pr.author.username }}</strong></div>
+        <div class="pay-summary-divider"></div>
+        <div class="pay-summary-row pay-total-row">
+          <span>Amount Received</span>
+          <strong style="color:var(--success);">₹{{ pr.total }}</strong>
+        </div>
+        {% if pr.items_description %}
+        <div style="margin-top:12px;">
+          <div style="font-size:12px;font-weight:700;color:var(--text-muted);margin-bottom:4px;">DESCRIPTION</div>
+          <p style="font-size:13px;color:var(--text-secondary);margin:0;">{{ pr.items_description }}</p>
+        </div>
+        {% endif %}
+        {% if pr.specifications %}
+        <div style="margin-top:10px;">
+          <div style="font-size:12px;font-weight:700;color:var(--text-muted);margin-bottom:4px;">SPECIFICATIONS</div>
+          <p style="font-size:13px;color:var(--text-secondary);margin:0;">{{ pr.specifications }}</p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<style>
+.ship-layout { display:grid; grid-template-columns:1fr 320px; gap:24px; align-items:start; }
+@media(max-width:768px){ .ship-layout { grid-template-columns:1fr; } }
+.vpe-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+.vpe-group { display:flex; flex-direction:column; gap:6px; }
+.vpe-group.vpe-full { grid-column:1/-1; }
+.vpe-group label { font-size:13px; font-weight:600; color:var(--text-secondary); }
+.vpe-group input, .vpe-group textarea, .vpe-group select {
+  border-radius:8px; border:1.5px solid var(--card-border);
+  padding:10px 14px; font-size:13.5px; background:var(--card-bg);
+  color:var(--text-primary); width:100%;
+}
+.vpe-group input:focus, .vpe-group textarea:focus, .vpe-group select:focus {
+  border-color:var(--primary); outline:none; box-shadow:0 0 0 3px rgba(37,99,235,.1);
+}
+.vpe-hint { font-size:11px; color:var(--text-muted); }
+.pay-summary-row { display:flex; justify-content:space-between; align-items:center; padding:8px 0; font-size:13.5px; color:var(--text-secondary); }
+.pay-summary-divider { border-top:1px solid var(--card-border); margin:8px 0; }
+.pay-total-row { font-size:15px; font-weight:700; color:var(--text-primary); }
+.btn-lg { padding:12px 28px; font-size:15px; }
+</style>
+
+{% endblock %}

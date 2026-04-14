@@ -1,0 +1,179 @@
+{% extends "prs/layout.html" %}
+{% block page_title %}Record Payment{% endblock %}
+{% block content %}
+
+<div class="page-header">
+  <div class="page-header-left">
+    <h1><i class="fas fa-credit-card mr-2" style="color:var(--primary)"></i>Record Payment</h1>
+    <p>Log a payment for a purchase request</p>
+  </div>
+  <a href="javascript:history.back()" class="btn btn-outline"><i class="fas fa-arrow-left"></i> Back</a>
+</div>
+
+<div style="max-width:760px;">
+  <div class="form-section">
+    <div class="form-section-title"><i class="fas fa-file-invoice-dollar"></i> Payment Details</div>
+    <form method="POST">
+      {% csrf_token %}
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+
+        <!-- PR selector — auto-fills vendor + amount -->
+        <div class="vpe-group" style="grid-column:1/-1;">
+          <label>Purchase Request <span style="color:var(--danger)">*</span></label>
+          {{ form.pr }}
+          <div class="vpe-hint"><i class="fas fa-magic mr-1" style="color:var(--primary)"></i>Selecting a PR will automatically fill the vendor and amount.</div>
+        </div>
+
+        <!-- PR info preview -->
+        <div id="prPreview" style="display:none;grid-column:1/-1;background:var(--info-light);border:1px solid #BFDBFE;border-radius:10px;padding:14px 16px;">
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;font-size:13px;">
+            <div><div class="detail-label">PR Number</div><div style="font-weight:700;color:var(--text-primary);" id="pp_number"></div></div>
+            <div><div class="detail-label">Category</div><div style="color:var(--text-secondary);" id="pp_category"></div></div>
+            <div><div class="detail-label">Approved Amount</div><div style="font-weight:700;color:var(--success);font-size:16px;" id="pp_total"></div></div>
+          </div>
+        </div>
+
+        <!-- Vendor (auto-filled) -->
+        <div class="vpe-group" style="grid-column:1/-1;">
+          <label>Vendor</label>
+          {{ form.vendor }}
+          <div id="vendorPreview" style="display:none;background:var(--page-bg);border:1px solid var(--card-border);border-radius:8px;padding:10px 14px;margin-top:6px;font-size:13px;color:var(--text-muted);">
+            <i class="fas fa-store mr-1" style="color:var(--primary)"></i>
+            <span id="vp_name" style="font-weight:600;color:var(--text-primary);"></span>
+            &nbsp;|&nbsp;<i class="fas fa-envelope mr-1"></i><span id="vp_email"></span>
+            &nbsp;|&nbsp;<i class="fas fa-phone mr-1"></i><span id="vp_phone"></span>
+          </div>
+        </div>
+
+        <!-- Amount -->
+        <div class="vpe-group">
+          <label>Amount (₹) <span style="color:var(--danger)">*</span></label>
+          {{ form.amount }}
+        </div>
+
+        <!-- Payment Method -->
+        <div class="vpe-group">
+          <label>Payment Method <span style="color:var(--danger)">*</span></label>
+          {{ form.payment_method }}
+        </div>
+
+        <!-- Payment Date -->
+        <div class="vpe-group">
+          <label>Payment Date <span style="color:var(--danger)">*</span></label>
+          {{ form.payment_date }}
+        </div>
+
+        <!-- Reference Number -->
+        <div class="vpe-group">
+          <label>Reference Number</label>
+          {{ form.reference_number }}
+          <div class="vpe-hint">Cheque number, TxnID, or bank reference</div>
+        </div>
+
+        <!-- Status -->
+        <div class="vpe-group">
+          <label>Payment Status <span style="color:var(--danger)">*</span></label>
+          {{ form.status }}
+        </div>
+
+        <!-- Notes -->
+        <div class="vpe-group" style="grid-column:1/-1;">
+          <label>Notes</label>
+          {{ form.notes }}
+        </div>
+
+      </div>
+
+      <div style="display:flex;justify-content:space-between;align-items:center;padding-top:16px;border-top:1px solid var(--card-border);">
+        <a href="javascript:history.back()" class="btn btn-outline"><i class="fas fa-times"></i> Cancel</a>
+        <button type="submit" class="btn btn-primary"><i class="fas fa-save mr-1"></i> Save Payment</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<style>
+.vpe-group { display:flex; flex-direction:column; gap:6px; }
+.vpe-group label { font-size:13px; font-weight:600; color:var(--text-secondary); }
+.vpe-group input, .vpe-group textarea, .vpe-group select {
+  border-radius:8px; border:1.5px solid var(--card-border);
+  padding:10px 14px; font-size:13.5px; background:var(--card-bg);
+  color:var(--text-primary); width:100%;
+}
+.vpe-group input:focus, .vpe-group textarea:focus, .vpe-group select:focus {
+  border-color:var(--primary); outline:none; box-shadow:0 0 0 3px rgba(37,99,235,.1);
+}
+.vpe-group textarea { min-height:80px; resize:vertical; }
+.vpe-hint { font-size:11px; color:var(--text-muted); }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const prSelect     = document.getElementById('id_pr');
+  const vendorSelect = document.getElementById('id_vendor');
+  const amountInput  = document.getElementById('id_amount');
+  const dateInput    = document.getElementById('id_payment_date');
+
+  // Set today's date as default
+  if (dateInput && !dateInput.value) {
+    dateInput.value = new Date().toISOString().split('T')[0];
+  }
+
+  function fetchPrDetails(prId) {
+    if (!prId) {
+      document.getElementById('prPreview').style.display    = 'none';
+      document.getElementById('vendorPreview').style.display = 'none';
+      return;
+    }
+
+    fetch('/api/get-pr-vendor/?pr_id=' + prId)
+      .then(r => r.json())
+      .then(data => {
+        // Fill PR preview
+        document.getElementById('pp_number').textContent   = data.pr_number   || '';
+        document.getElementById('pp_category').textContent = data.pr_category  || '';
+        document.getElementById('pp_total').textContent    = data.pr_total ? '₹' + data.pr_total : '—';
+        document.getElementById('prPreview').style.display = '';
+
+        // Auto-fill amount from PR total
+        if (data.pr_total && amountInput && !amountInput.value) {
+          amountInput.value = data.pr_total;
+        }
+
+        // Auto-fill vendor
+        if (data.vendor_id) {
+          vendorSelect.value = data.vendor_id;
+          document.getElementById('vp_name').textContent  = data.vendor_name || '';
+          document.getElementById('vp_email').textContent = data.vendor_email || '—';
+          document.getElementById('vp_phone').textContent = data.vendor_phone || '—';
+          document.getElementById('vendorPreview').style.display = '';
+        } else {
+          vendorSelect.value = '';
+          document.getElementById('vendorPreview').style.display = 'none';
+        }
+      })
+      .catch(() => {
+        document.getElementById('prPreview').style.display    = 'none';
+        document.getElementById('vendorPreview').style.display = 'none';
+      });
+  }
+
+  prSelect.addEventListener('change', function () {
+    amountInput.value = ''; // reset amount so it gets filled from new PR
+    fetchPrDetails(this.value);
+  });
+
+  // Pre-fill from URL ?pr=X or already selected
+  const urlParams = new URLSearchParams(window.location.search);
+  const prFromUrl = urlParams.get('pr');
+  if (prFromUrl) {
+    prSelect.value = prFromUrl;
+    fetchPrDetails(prFromUrl);
+  } else if (prSelect.value) {
+    fetchPrDetails(prSelect.value);
+  }
+});
+</script>
+
+{% endblock %}

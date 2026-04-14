@@ -144,6 +144,9 @@ class Vendor(models.Model):
     # Business details
     tax_id = models.CharField(max_length=100, blank=True, help_text="Tax ID or Business Registration Number")
     bank_account = models.CharField(max_length=100, blank=True)
+    account_holder = models.CharField(max_length=200, blank=True, help_text="Bank account holder name")
+    ifsc_code = models.CharField(max_length=20, blank=True, help_text="IFSC code for bank transfer")
+    upi_id = models.CharField(max_length=100, blank=True, help_text="UPI ID for payments (e.g. vendor@upi)")
     payment_terms = models.CharField(max_length=100, blank=True, help_text="e.g., Net 30, Net 60")
     
     # Categories they serve - now using MultipleChoiceField approach
@@ -346,6 +349,12 @@ class PR(models.Model):
     
     # Delivery status
     delivery_status = models.CharField(max_length=50, choices=delivery_status_choice, default='Not Shipped')
+
+    # Requester payment & delivery address (filled when requester approves quotation)
+    delivery_address = models.TextField(blank=True, default='', help_text="Delivery address provided by requester")
+    requester_approved_quotation = models.BooleanField(default=False, help_text="Requester approved the quotation and paid")
+    payment_transaction_id = models.CharField(max_length=200, blank=True, default='', help_text="Online payment transaction ID")
+    payment_method_used = models.CharField(max_length=100, blank=True, default='', help_text="Payment method used by requester")
 
     def __str__(self):
         return self.pr_number

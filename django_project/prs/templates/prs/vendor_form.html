@@ -1,35 +1,33 @@
 {% extends "prs/layout.html" %}
 {% load crispy_forms_tags %}
+{% block page_title %}{% if object %}Edit Vendor{% else %}Add Vendor{% endif %}{% endblock %}
 {% block content %}
 
-<div class="content-card">
-    <div class="d-flex align-items-center justify-content-between mb-4">
-        <div>
-            <h2 style="color: #2d3748; font-weight: 700; margin-bottom: 5px;">
-                <i class="fas fa-store mr-2" style="color: #667eea;"></i>
-                {% if object %}Edit Vendor{% else %}Add New Vendor{% endif %}
-            </h2>
-            <p class="text-muted mb-0">{% if object %}Update vendor information{% else %}Create a new vendor{% endif %}</p>
-        </div>
-        <a href="{% url 'vendor-list' %}" class="btn btn-outline-primary" style="border-radius: 8px;">
-            <i class="fas fa-arrow-left mr-2"></i>Back
-        </a>
-    </div>
-
-    <div style="background: white; border-radius: 15px; padding: 30px; box-shadow: 0 5px 15px rgba(0,0,0,0.05);">
-        <form method="POST">
-            {% csrf_token %}
-            {{ form|crispy }}
-            <div class="mt-4">
-                <button class="btn btn-primary" type="submit" style="border-radius: 8px;">
-                    <i class="fas fa-save mr-2"></i>Save Vendor
-                </button>
-                <a href="{% url 'vendor-list' %}" class="btn btn-light ml-2" style="border-radius: 8px;">
-                    <i class="fas fa-times mr-2"></i>Cancel
-                </a>
-            </div>
-        </form>
-    </div>
+<div class="page-header">
+  <div class="page-header-left">
+    <h1><i class="fas fa-store mr-2" style="color:var(--primary)"></i>{% if object %}Edit Vendor{% else %}Add New Vendor{% endif %}</h1>
+    <p>{% if object %}Update vendor information{% else %}Create a new vendor{% endif %}</p>
+  </div>
+  <a href="{% url 'vendor-list' %}" class="btn btn-outline"><i class="fas fa-arrow-left"></i> Back</a>
 </div>
 
-{% endblock content %}
+<div style="max-width:720px;">
+  <div class="form-section">
+    <form method="POST">
+      {% csrf_token %}
+      {{ form|crispy }}
+      <div class="d-flex gap-2" style="margin-top:20px;padding-top:16px;border-top:1px solid var(--card-border);">
+        <button class="btn btn-primary" type="submit"><i class="fas fa-save"></i> Save Vendor</button>
+        <a href="{% url 'vendor-list' %}" class="btn btn-outline"><i class="fas fa-times"></i> Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<style>
+  fieldset .form-control { border-radius:8px; border:1.5px solid var(--card-border); padding:10px 14px; }
+  fieldset .form-control:focus { border-color:var(--primary); box-shadow:0 0 0 3px rgba(37,99,235,0.1); }
+  fieldset label { font-weight:600; color:var(--text-secondary); font-size:13px; }
+</style>
+
+{% endblock %}

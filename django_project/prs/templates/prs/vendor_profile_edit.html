@@ -1,0 +1,123 @@
+{% extends "prs/layout.html" %}
+{% block page_title %}Edit Vendor Profile{% endblock %}
+{% block content %}
+
+<div class="page-header">
+  <div class="page-header-left">
+    <h1><i class="fas fa-store mr-2" style="color:var(--primary)"></i>Edit Vendor Profile</h1>
+    <p>Update your contact details and payment account information</p>
+  </div>
+  <a href="{% url 'vendor-dashboard' %}" class="btn btn-outline"><i class="fas fa-arrow-left"></i> Back</a>
+</div>
+
+<div style="max-width:820px;">
+<form method="POST">
+{% csrf_token %}
+
+<!-- Contact Details -->
+<div class="card" style="margin-bottom:20px;">
+  <div class="card-header"><h5><i class="fas fa-address-card mr-2"></i>Contact Details</h5></div>
+  <div class="card-body">
+    <div class="vpe-grid">
+      <div class="vpe-group">
+        <label>Business Name</label>
+        <input type="text" value="{{ vendor.name }}" disabled style="opacity:.6;cursor:not-allowed;">
+        <div class="vpe-hint">Contact admin to change business name.</div>
+      </div>
+      <div class="vpe-group">
+        <label>Contact Person <span class="req">*</span></label>
+        <input type="text" name="contact_person" value="{{ vendor.contact_person }}" placeholder="Full name of primary contact" required>
+      </div>
+      <div class="vpe-group">
+        <label>Email <span class="req">*</span></label>
+        <input type="email" name="email" value="{{ vendor.email }}" placeholder="business@example.com" required>
+      </div>
+      <div class="vpe-group">
+        <label>Phone <span class="req">*</span></label>
+        <input type="text" name="phone" value="{{ vendor.phone }}" placeholder="+91 98765 43210" required>
+      </div>
+      <div class="vpe-group vpe-full">
+        <label>Business Address</label>
+        <textarea name="address" rows="3" placeholder="Full business address...">{{ vendor.address }}</textarea>
+      </div>
+      <div class="vpe-group">
+        <label>Website</label>
+        <input type="url" name="website" value="{{ vendor.website }}" placeholder="https://yourwebsite.com">
+      </div>
+      <div class="vpe-group">
+        <label>Tax ID / GST Number</label>
+        <input type="text" name="tax_id" value="{{ vendor.tax_id }}" placeholder="GSTIN or Business Reg. No.">
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Payment Account Details -->
+<div class="card" style="margin-bottom:20px;border-left:3px solid var(--success);">
+  <div class="card-header"><h5><i class="fas fa-university mr-2" style="color:var(--success)"></i>Payment Account Details</h5></div>
+  <div class="card-body">
+    <div class="alert alert-info" style="margin-bottom:16px;">
+      <i class="fas fa-info-circle mr-2"></i>
+      These details are used by the institution to transfer payment to you after order confirmation.
+    </div>
+    <div class="vpe-grid">
+      <div class="vpe-group">
+        <label>Account Holder Name</label>
+        <input type="text" name="account_holder" value="{{ vendor.account_holder }}" placeholder="Name as on bank account">
+      </div>
+      <div class="vpe-group">
+        <label>Bank Account Number</label>
+        <input type="text" name="bank_account" value="{{ vendor.bank_account }}" placeholder="e.g. 1234567890123456">
+      </div>
+      <div class="vpe-group">
+        <label>IFSC Code</label>
+        <input type="text" name="ifsc_code" value="{{ vendor.ifsc_code }}" placeholder="e.g. SBIN0001234" style="text-transform:uppercase;">
+      </div>
+      <div class="vpe-group">
+        <label>UPI ID</label>
+        <input type="text" name="upi_id" value="{{ vendor.upi_id }}" placeholder="e.g. vendor@upi or 9876543210@paytm">
+      </div>
+      <div class="vpe-group">
+        <label>Payment Terms</label>
+        <input type="text" name="payment_terms" value="{{ vendor.payment_terms }}" placeholder="e.g. Net 30, Advance, COD">
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Additional Notes -->
+<div class="card" style="margin-bottom:20px;">
+  <div class="card-header"><h5><i class="fas fa-sticky-note mr-2"></i>Additional Notes</h5></div>
+  <div class="card-body">
+    <div class="vpe-group">
+      <textarea name="notes" rows="3" placeholder="Any additional information about your business...">{{ vendor.notes }}</textarea>
+    </div>
+  </div>
+</div>
+
+<div style="display:flex;justify-content:space-between;align-items:center;">
+  <a href="{% url 'vendor-dashboard' %}" class="btn btn-outline"><i class="fas fa-times"></i> Cancel</a>
+  <button type="submit" class="btn btn-primary btn-lg"><i class="fas fa-save mr-1"></i> Save Profile</button>
+</div>
+</form>
+</div>
+
+<style>
+.vpe-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+.vpe-group { display:flex; flex-direction:column; gap:6px; }
+.vpe-group.vpe-full { grid-column:1/-1; }
+.vpe-group label { font-size:13px; font-weight:600; color:var(--text-secondary); }
+.vpe-group input, .vpe-group textarea, .vpe-group select {
+  border-radius:8px; border:1.5px solid var(--card-border);
+  padding:10px 14px; font-size:13.5px; background:var(--card-bg);
+  color:var(--text-primary); width:100%;
+}
+.vpe-group input:focus, .vpe-group textarea:focus {
+  border-color:var(--primary); outline:none; box-shadow:0 0 0 3px rgba(37,99,235,.1);
+}
+.vpe-hint { font-size:11px; color:var(--text-muted); }
+.req { color:var(--danger); }
+.btn-lg { padding:12px 28px; font-size:15px; }
+@media(max-width:600px){ .vpe-grid { grid-template-columns:1fr; } }
+</style>
+{% endblock %}

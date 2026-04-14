@@ -1,0 +1,60 @@
+{% with status=pr.delivery_status %}
+<div class="track-step {% if status != 'Cancelled' %}done{% endif %}">
+  <div class="track-dot"><i class="fas fa-check-circle"></i></div>
+  <div class="track-content">
+    <div class="track-title">Order Placed & Payment Confirmed</div>
+    <div class="track-sub">{% if pr.payment_date %}{{ pr.payment_date|date:"F d, Y" }}{% else %}Completed{% endif %}</div>
+  </div>
+</div>
+
+<div class="track-step {% if status == 'In Transit' or status == 'Delivered' %}done{% elif status == 'Cancelled' %}cancelled{% else %}pending{% endif %}">
+  <div class="track-dot">
+    {% if status == 'In Transit' or status == 'Delivered' %}<i class="fas fa-check-circle"></i>
+    {% elif status == 'Cancelled' %}<i class="fas fa-times-circle"></i>
+    {% else %}<i class="fas fa-circle"></i>{% endif %}
+  </div>
+  <div class="track-content">
+    <div class="track-title">Shipped</div>
+    <div class="track-sub">
+      {% if delivery and delivery.shipped_date %}{{ delivery.shipped_date|date:"F d, Y" }}
+      {% elif status == 'In Transit' or status == 'Delivered' %}Dispatched
+      {% else %}Awaiting dispatch{% endif %}
+    </div>
+  </div>
+</div>
+
+<div class="track-step {% if status == 'In Transit' %}active{% elif status == 'Delivered' %}done{% elif status == 'Cancelled' %}cancelled{% else %}pending{% endif %}">
+  <div class="track-dot">
+    {% if status == 'Delivered' %}<i class="fas fa-check-circle"></i>
+    {% elif status == 'In Transit' %}<i class="fas fa-truck"></i>
+    {% elif status == 'Cancelled' %}<i class="fas fa-times-circle"></i>
+    {% else %}<i class="fas fa-circle"></i>{% endif %}
+  </div>
+  <div class="track-content">
+    <div class="track-title">In Transit</div>
+    <div class="track-sub">
+      {% if status == 'In Transit' %}
+        <span class="badge badge-orange">On the way</span>
+        {% if delivery and delivery.expected_delivery_date %}&nbsp; Expected: {{ delivery.expected_delivery_date|date:"F d, Y" }}{% endif %}
+      {% elif status == 'Delivered' %}Delivered
+      {% else %}Pending{% endif %}
+    </div>
+  </div>
+</div>
+
+<div class="track-step {% if status == 'Delivered' %}done{% elif status == 'Cancelled' %}cancelled{% else %}pending{% endif %}">
+  <div class="track-dot">
+    {% if status == 'Delivered' %}<i class="fas fa-check-circle"></i>
+    {% elif status == 'Cancelled' %}<i class="fas fa-times-circle"></i>
+    {% else %}<i class="fas fa-circle"></i>{% endif %}
+  </div>
+  <div class="track-content">
+    <div class="track-title">Delivered</div>
+    <div class="track-sub">
+      {% if delivery and delivery.actual_delivery_date %}{{ delivery.actual_delivery_date|date:"F d, Y" }}
+      {% elif status == 'Delivered' %}Delivered
+      {% else %}Pending{% endif %}
+    </div>
+  </div>
+</div>
+{% endwith %}

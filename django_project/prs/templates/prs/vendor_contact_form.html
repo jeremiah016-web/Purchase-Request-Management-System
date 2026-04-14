@@ -1,0 +1,149 @@
+{% extends "prs/layout.html" %}
+{% block page_title %}Log Vendor Contact{% endblock %}
+{% block content %}
+
+<div class="page-header">
+  <div class="page-header-left">
+    <h1><i class="fas fa-phone mr-2" style="color:var(--primary)"></i>Log Vendor Contact</h1>
+    <p>Record a communication with a vendor</p>
+  </div>
+  <a href="javascript:history.back()" class="btn btn-outline"><i class="fas fa-arrow-left"></i> Back</a>
+</div>
+
+<div style="max-width:760px;">
+  <div class="form-section">
+    <div class="form-section-title"><i class="fas fa-comments"></i> Contact Details</div>
+    <form method="POST">
+      {% csrf_token %}
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+
+        <!-- PR selector — choosing this auto-fills vendor -->
+        <div class="vpe-group" style="grid-column:1/-1;">
+          <label>Related PR <span style="color:var(--danger)">*</span></label>
+          {{ form.pr }}
+          <div class="vpe-hint"><i class="fas fa-magic mr-1" style="color:var(--primary)"></i>Selecting a PR will automatically fill the vendor details below.</div>
+        </div>
+
+        <!-- Vendor auto-filled card -->
+        <div class="vpe-group" style="grid-column:1/-1;" id="vendorPreviewWrap" style="display:none;">
+          <label>Vendor</label>
+          {{ form.vendor }}
+          <!-- Vendor info preview -->
+          <div id="vendorPreview" style="display:none;background:var(--info-light);border:1px solid #BFDBFE;border-radius:10px;padding:14px 16px;margin-top:8px;">
+            <div style="font-weight:700;font-size:14px;color:var(--text-primary);" id="vp_name"></div>
+            <div style="font-size:13px;color:var(--text-muted);margin-top:4px;">
+              <i class="fas fa-user mr-1"></i><span id="vp_contact"></span>
+              &nbsp;|&nbsp;
+              <i class="fas fa-envelope mr-1"></i><span id="vp_email"></span>
+              &nbsp;|&nbsp;
+              <i class="fas fa-phone mr-1"></i><span id="vp_phone"></span>
+            </div>
+          </div>
+          <div id="noVendorWarn" style="display:none;background:#FEF3C7;border:1px solid #FCD34D;border-radius:8px;padding:10px 14px;margin-top:8px;font-size:13px;color:#92400E;">
+            <i class="fas fa-exclamation-triangle mr-1"></i>This PR has no vendor assigned yet.
+          </div>
+        </div>
+
+        <div class="vpe-group">
+          <label>Contact Type <span style="color:var(--danger)">*</span></label>
+          {{ form.contact_type }}
+        </div>
+        <div class="vpe-group">
+          <label>Follow-up Date (Optional)</label>
+          {{ form.follow_up_date }}
+        </div>
+        <div class="vpe-group" style="grid-column:1/-1;">
+          <label>Subject <span style="color:var(--danger)">*</span></label>
+          {{ form.subject }}
+        </div>
+        <div class="vpe-group" style="grid-column:1/-1;">
+          <label>Message <span style="color:var(--danger)">*</span></label>
+          {{ form.message }}
+        </div>
+        <div class="vpe-group" style="grid-column:1/-1;">
+          <label>Vendor Response (Optional)</label>
+          {{ form.response }}
+        </div>
+      </div>
+
+      <div style="display:flex;justify-content:space-between;align-items:center;padding-top:16px;border-top:1px solid var(--card-border);">
+        <a href="javascript:history.back()" class="btn btn-outline"><i class="fas fa-times"></i> Cancel</a>
+        <button type="submit" class="btn btn-primary"><i class="fas fa-save mr-1"></i> Save Contact Log</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<style>
+.vpe-group { display:flex; flex-direction:column; gap:6px; }
+.vpe-group label { font-size:13px; font-weight:600; color:var(--text-secondary); }
+.vpe-group input, .vpe-group textarea, .vpe-group select {
+  border-radius:8px; border:1.5px solid var(--card-border);
+  padding:10px 14px; font-size:13.5px; background:var(--card-bg);
+  color:var(--text-primary); width:100%;
+}
+.vpe-group input:focus, .vpe-group textarea:focus, .vpe-group select:focus {
+  border-color:var(--primary); outline:none; box-shadow:0 0 0 3px rgba(37,99,235,.1);
+}
+.vpe-group textarea { min-height:90px; resize:vertical; }
+.vpe-hint { font-size:11px; color:var(--text-muted); }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const prSelect   = document.getElementById('id_pr');
+  const vendorSelect = document.getElementById('id_vendor');
+  const vendorPreview = document.getElementById('vendorPreview');
+  const noVendorWarn  = document.getElementById('noVendorWarn');
+
+  function fetchVendor(prId) {
+    if (!prId) {
+      vendorPreview.style.display = 'none';
+      noVendorWarn.style.display  = 'none';
+      return;
+    }
+
+    fetch('/api/get-pr-vendor/?pr_id=' + prId)
+      .then(r => r.json())
+      .then(data => {
+        if (data.vendor_id) {
+          // Auto-select vendor in the dropdown
+          vendorSelect.value = data.vendor_id;
+
+          // Show info card
+          document.getElementById('vp_name').textContent    = data.vendor_name;
+          document.getElementById('vp_contact').textContent = data.vendor_contact_person || '—';
+          document.getElementById('vp_email').textContent   = data.vendor_email || '—';
+          document.getElementById('vp_phone').textContent   = data.vendor_phone || '—';
+          vendorPreview.style.display = '';
+          noVendorWarn.style.display  = 'none';
+        } else {
+          vendorSelect.value = '';
+          vendorPreview.style.display = 'none';
+          noVendorWarn.style.display  = '';
+        }
+      })
+      .catch(() => {
+        vendorPreview.style.display = 'none';
+        noVendorWarn.style.display  = 'none';
+      });
+  }
+
+  prSelect.addEventListener('change', function () {
+    fetchVendor(this.value);
+  });
+
+  // Pre-fill if PR was passed in URL query string (?pr=X) or already selected
+  const urlParams = new URLSearchParams(window.location.search);
+  const prFromUrl = urlParams.get('pr');
+  if (prFromUrl) {
+    prSelect.value = prFromUrl;
+    fetchVendor(prFromUrl);
+  } else if (prSelect.value) {
+    fetchVendor(prSelect.value);
+  }
+});
+</script>
+
+{% endblock %}

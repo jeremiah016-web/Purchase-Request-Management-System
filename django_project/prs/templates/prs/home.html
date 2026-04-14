@@ -1,602 +1,272 @@
 {% extends "prs/layout.html" %}
+{% block page_title %}All Purchase Requests{% endblock %}
 {% block content %}
-  {% if user.username %}
-    <legend class="mb-3">Purchase Requests in process ({{ prs.count }})</legend>
-    {% for pr in prs %}
-        <article class="media content-section">
-          <img class="rounded-circle article-img" src="{{ pr.author.profile.image.url }}">
-          <div class="media-body">
 
-            <div class="article-metadata">
-              <a class="mr-3" href="{% url 'user-prs' pr.author.username %}">{{ pr.author }}</a>
-              <small class="text-muted small">{{ pr.date_posted|date:"F d, Y" }}</small>
+{% if user.is_authenticated %}
+<!-- ===== AUTHENTICATED: PR LIST ===== -->
+<div class="page-header">
+  <div class="page-header-left">
+    <h1>Purchase Requests</h1>
+    <p>{{ prs.count }} active request{{ prs.count|pluralize }}</p>
+  </div>
+  {% if user.profile.is_requester %}
+  <a href="{% url 'pr-create' %}" class="btn btn-primary">
+    <i class="fas fa-plus"></i> New Request
+  </a>
+  {% endif %}
+</div>
+
+<div class="card">
+  <div class="card-body" style="padding:0;">
+    {% if prs %}
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Requester</th>
+          <th>PR Number</th>
+          <th>Category</th>
+          <th>Total</th>
+          <th>Status</th>
+          <th>Date</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for pr in prs %}
+        <tr>
+          <td>
+            <div class="d-flex align-items-center gap-2">
+              <img class="avatar-sm" src="{{ pr.author.profile.image.url }}" alt="{{ pr.author.username }}">
+              <a href="{% url 'user-prs' pr.author.username %}" style="color:var(--text-primary);font-weight:600;">
+                {{ pr.author.username }}
+              </a>
             </div>
-
-            <table width="100%">
-              <tr>
-                <td class='article-details' width="20%"><a class="article-title" href="{% url 'pr-detail' pr.id %}">{{ pr.pr_number }}</a></td>
-                <td class='article-details text-muted' width="20%">Total:</td>
-                <td class='article-details text-muted' width="20%">Status:</td>
-                <td class='article-details text-muted' width="40%">Category:</td>
-              </tr>
-              <tr>
-                <td class='article-details' width="20%"></td>
-                <td class='article-details text-muted' width="20%">{{ pr.total }} EUR</td>
-                <td class='article-details text-muted' width="20%">{{ pr.status }}</td>
-                <td class='article-details text-muted' width="40%">{{ pr.category }}</td>
-              </tr>
-            </table>
-
-          </div>
-        </article>
-    {% endfor %}
+          </td>
+          <td><a href="{% url 'pr-detail' pr.id %}">{{ pr.pr_number }}</a></td>
+          <td><span class="badge badge-gray">{{ pr.category }}</span></td>
+          <td style="font-weight:600;">€{{ pr.total }}</td>
+          <td>
+            {% if pr.status == 'Open' %}
+              <span class="badge badge-orange"><i class="fas fa-circle" style="font-size:7px;"></i> Open</span>
+            {% elif pr.status == 'Pending' %}
+              <span class="badge badge-blue"><i class="fas fa-circle" style="font-size:7px;"></i> Pending</span>
+            {% elif pr.status == 'Approval' %}
+              <span class="badge badge-green"><i class="fas fa-circle" style="font-size:7px;"></i> Approved</span>
+            {% elif pr.status == 'Done' %}
+              <span class="badge badge-purple"><i class="fas fa-circle" style="font-size:7px;"></i> Done</span>
+            {% else %}
+              <span class="badge badge-gray">{{ pr.status }}</span>
+            {% endif %}
+          </td>
+          <td style="color:var(--text-muted);">{{ pr.date_posted|date:"M d, Y" }}</td>
+          <td>
+            <a href="{% url 'pr-detail' pr.id %}" class="btn btn-outline btn-sm">View</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
 
     {% if is_paginated %}
-
-      {% if page_obj.has_previous %}
-        <a class="btn btn-outline-secondary mb-4" href="?page=1">First</a>
-        <a class="btn btn-outline-secondary mb-4" href="?page={{ page_obj.previous_page_number }}">Previous</a>
-      {% endif %}
-
-      {% for num in page_obj.paginator.page_range %}
-        {% if page_obj.number == num %}
-          <a class="btn btn-secondary mb-4" href="?page={{ num }}">{{ num }}</a>
-        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
-          <a class="btn btn-outline-secondary mb-4" href="?page={{ num }}">{{ num }}</a>
+    <div style="padding:16px 20px; border-top:1px solid var(--card-border);">
+      <div class="pagination">
+        {% if page_obj.has_previous %}
+          <a class="page-link" href="?page=1"><i class="fas fa-angle-double-left"></i></a>
+          <a class="page-link" href="?page={{ page_obj.previous_page_number }}"><i class="fas fa-angle-left"></i></a>
         {% endif %}
-      {% endfor %}
-
-      {% if page_obj.has_next %}
-        <a class="btn btn-outline-secondary mb-4" href="?page={{ page_obj.next_page_number }}">Next</a>
-        <a class="btn btn-outline-secondary mb-4" href="?page={{ page_obj.paginator.num_pages }}">Last</a>
-      {% endif %}
-
+        {% for num in page_obj.paginator.page_range %}
+          {% if page_obj.number == num %}
+            <span class="page-item active"><span class="page-link">{{ num }}</span></span>
+          {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+            <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+          {% endif %}
+        {% endfor %}
+        {% if page_obj.has_next %}
+          <a class="page-link" href="?page={{ page_obj.next_page_number }}"><i class="fas fa-angle-right"></i></a>
+          <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}"><i class="fas fa-angle-double-right"></i></a>
+        {% endif %}
+      </div>
+    </div>
     {% endif %}
 
-  {% else %}
-    <!-- Modern Landing Page -->
-    <style>
-        /* Landing Page Specific Styles */
-        .landing-page {
-            padding: 0;
-            margin: -30px;
-        }
-        
-        .hero-section {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 80px 40px;
-            border-radius: 20px;
-            text-align: center;
-            margin-bottom: 40px;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .hero-section::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="rgba(255,255,255,0.1)" d="M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,122.7C672,117,768,139,864,138.7C960,139,1056,117,1152,101.3C1248,85,1344,75,1392,69.3L1440,64L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>') no-repeat bottom;
-            background-size: cover;
-            opacity: 0.3;
-        }
-        
-        .hero-content {
-            position: relative;
-            z-index: 1;
-        }
-        
-        .hero-section h1 {
-            font-size: 3rem;
-            font-weight: 700;
-            margin-bottom: 20px;
-            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
-        }
-        
-        .hero-section p {
-            font-size: 1.3rem;
-            margin-bottom: 30px;
-            opacity: 0.95;
-        }
-        
-        .hero-buttons {
-            display: flex;
-            gap: 15px;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-        
-        .hero-btn {
-            padding: 15px 40px;
-            font-size: 1.1rem;
-            font-weight: 600;
-            border-radius: 50px;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            display: inline-block;
-        }
-        
-        .hero-btn-primary {
-            background: white;
-            color: #667eea;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-        }
-        
-        .hero-btn-primary:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
-            color: #764ba2;
-            text-decoration: none;
-        }
-        
-        .hero-btn-secondary {
-            background: rgba(255,255,255,0.2);
-            color: white;
-            border: 2px solid white;
-        }
-        
-        .hero-btn-secondary:hover {
-            background: white;
-            color: #667eea;
-            transform: translateY(-3px);
-            text-decoration: none;
-        }
-        
-        .features-section {
-            padding: 60px 40px;
-            background: white;
-            border-radius: 20px;
-            margin-bottom: 40px;
-        }
-        
-        .section-title {
-            text-align: center;
-            margin-bottom: 50px;
-        }
-        
-        .section-title h2 {
-            font-size: 2.5rem;
-            font-weight: 700;
-            color: #2d3748;
-            margin-bottom: 15px;
-        }
-        
-        .section-title p {
-            font-size: 1.2rem;
-            color: #718096;
-        }
-        
-        .feature-card {
-            text-align: center;
-            padding: 30px;
-            border-radius: 15px;
-            transition: all 0.3s ease;
-            height: 100%;
-            background: #f8fafc;
-        }
-        
-        .feature-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 15px 30px rgba(102,126,234,0.2);
-            background: white;
-        }
-        
-        .feature-icon {
-            width: 80px;
-            height: 80px;
-            margin: 0 auto 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2.5rem;
-            color: white;
-        }
-        
-        .feature-card h3 {
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: #2d3748;
-            margin-bottom: 15px;
-        }
-        
-        .feature-card p {
-            color: #718096;
-            line-height: 1.6;
-        }
-        
-        .services-section {
-            padding: 60px 40px;
-            background: linear-gradient(135deg, #f8fafc 0%, #e9eef5 100%);
-            border-radius: 20px;
-            margin-bottom: 40px;
-        }
-        
-        .service-item {
-            display: flex;
-            align-items: start;
-            padding: 25px;
-            background: white;
-            border-radius: 15px;
-            margin-bottom: 20px;
-            transition: all 0.3s ease;
-        }
-        
-        .service-item:hover {
-            transform: translateX(10px);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-        }
-        
-        .service-icon {
-            width: 60px;
-            height: 60px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.8rem;
-            color: white;
-            margin-right: 20px;
-            flex-shrink: 0;
-        }
-        
-        .service-content h4 {
-            font-size: 1.3rem;
-            font-weight: 600;
-            color: #2d3748;
-            margin-bottom: 10px;
-        }
-        
-        .service-content p {
-            color: #718096;
-            margin: 0;
-        }
-        
-        .contact-section {
-            padding: 60px 40px;
-            background: white;
-            border-radius: 20px;
-            text-align: center;
-        }
-        
-        .contact-info {
-            display: flex;
-            justify-content: center;
-            gap: 40px;
-            flex-wrap: wrap;
-            margin-top: 40px;
-        }
-        
-        .contact-item {
-            flex: 1;
-            min-width: 250px;
-            padding: 30px;
-            background: #f8fafc;
-            border-radius: 15px;
-            transition: all 0.3s ease;
-        }
-        
-        .contact-item:hover {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            transform: translateY(-5px);
-        }
-        
-        .contact-item:hover .contact-icon {
-            background: white;
-            color: #667eea;
-        }
-        
-        .contact-icon {
-            width: 60px;
-            height: 60px;
-            margin: 0 auto 15px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            color: white;
-            transition: all 0.3s ease;
-        }
-        
-        .contact-item h4 {
-            font-size: 1.2rem;
-            font-weight: 600;
-            margin-bottom: 10px;
-        }
-        
-        .stats-section {
-            display: flex;
-            justify-content: space-around;
-            flex-wrap: wrap;
-            gap: 20px;
-            padding: 40px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 20px;
-            margin-bottom: 40px;
-            color: white;
-        }
-        
-        .stat-item {
-            text-align: center;
-            flex: 1;
-            min-width: 150px;
-        }
-        
-        .stat-number {
-            font-size: 3rem;
-            font-weight: 700;
-            margin-bottom: 10px;
-        }
-        
-        .stat-label {
-            font-size: 1.1rem;
-            opacity: 0.9;
-        }
-        
-        @media (max-width: 768px) {
-            .hero-section {
-                padding: 60px 20px;
-            }
-            
-            .hero-section h1 {
-                font-size: 2rem;
-            }
-            
-            .hero-section p {
-                font-size: 1.1rem;
-            }
-            
-            .hero-buttons {
-                flex-direction: column;
-            }
-            
-            .hero-btn {
-                width: 100%;
-            }
-            
-            .features-section,
-            .services-section,
-            .contact-section {
-                padding: 40px 20px;
-            }
-            
-            .section-title h2 {
-                font-size: 2rem;
-            }
-            
-            .service-item {
-                flex-direction: column;
-                text-align: center;
-            }
-            
-            .service-icon {
-                margin: 0 auto 15px;
-            }
-            
-            .contact-info {
-                flex-direction: column;
-            }
-            
-            .stat-number {
-                font-size: 2rem;
-            }
-        }
-    </style>
-    
-    <div class="landing-page">
-        <!-- Hero Section -->
-        <section class="hero-section">
-            <div class="hero-content">
-                <h1><i class="fas fa-tasks mr-3"></i>PR Management System</h1>
-                <p>Streamline your purchase request workflow with our modern, efficient management system</p>
-                <div class="hero-buttons">
-                    <a href="{% url 'register' %}" class="hero-btn hero-btn-primary">
-                        <i class="fas fa-user-plus mr-2"></i>Get Started
-                    </a>
-                    <a href="{% url 'login' %}" class="hero-btn hero-btn-secondary">
-                        <i class="fas fa-sign-in-alt mr-2"></i>Login
-                    </a>
-                </div>
-            </div>
-        </section>
-        
-        <!-- Stats Section -->
-        <section class="stats-section" id="stats">
-            <div class="stat-item">
-                <div class="stat-number"><i class="fas fa-users"></i></div>
-                <div class="stat-label">Multi-Role System</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-number"><i class="fas fa-file-invoice-dollar"></i></div>
-                <div class="stat-label">Smart Quotations</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-number"><i class="fas fa-chart-line"></i></div>
-                <div class="stat-label">Real-Time Tracking</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-number"><i class="fas fa-shield-alt"></i></div>
-                <div class="stat-label">Secure & Reliable</div>
-            </div>
-        </section>
-        
-        <!-- Features Section -->
-        <section class="features-section" id="features">
-            <div class="section-title">
-                <h2>Key Features</h2>
-                <p>Everything you need to manage purchase requests efficiently</p>
-            </div>
-            
-            <div class="row">
-                <div class="col-md-4 mb-4">
-                    <div class="feature-card">
-                        <div class="feature-icon">
-                            <i class="fas fa-bolt"></i>
-                        </div>
-                        <h3>Fast & Efficient</h3>
-                        <p>Create and process purchase requests in minutes, not hours. Streamlined workflow saves time.</p>
-                    </div>
-                </div>
-                
-                <div class="col-md-4 mb-4">
-                    <div class="feature-card">
-                        <div class="feature-icon">
-                            <i class="fas fa-users-cog"></i>
-                        </div>
-                        <h3>Role-Based Access</h3>
-                        <p>Separate dashboards for Requesters, Vendors, Buyers, and Admins with appropriate permissions.</p>
-                    </div>
-                </div>
-                
-                <div class="col-md-4 mb-4">
-                    <div class="feature-card">
-                        <div class="feature-icon">
-                            <i class="fas fa-file-invoice-dollar"></i>
-                        </div>
-                        <h3>Multi-Vendor Quotations</h3>
-                        <p>Get competitive quotes from multiple vendors and select the best option for your needs.</p>
-                    </div>
-                </div>
-                
-                <div class="col-md-4 mb-4">
-                    <div class="feature-card">
-                        <div class="feature-icon">
-                            <i class="fas fa-chart-bar"></i>
-                        </div>
-                        <h3>Real-Time Tracking</h3>
-                        <p>Monitor purchase requests from creation to delivery with live status updates.</p>
-                    </div>
-                </div>
-                
-                <div class="col-md-4 mb-4">
-                    <div class="feature-card">
-                        <div class="feature-icon">
-                            <i class="fas fa-mobile-alt"></i>
-                        </div>
-                        <h3>Mobile Friendly</h3>
-                        <p>Access the system from any device - desktop, tablet, or smartphone.</p>
-                    </div>
-                </div>
-                
-                <div class="col-md-4 mb-4">
-                    <div class="feature-card">
-                        <div class="feature-icon">
-                            <i class="fas fa-lock"></i>
-                        </div>
-                        <h3>Secure & Compliant</h3>
-                        <p>Enterprise-grade security with complete audit trails for compliance.</p>
-                    </div>
-                </div>
-            </div>
-        </section>
-        
-        <!-- Services Section -->
-        <section class="services-section" id="services">
-            <div class="section-title">
-                <h2>Our Services</h2>
-                <p>Comprehensive procurement management solutions</p>
-            </div>
-            
-            <div class="service-item">
-                <div class="service-icon">
-                    <i class="fas fa-file-alt"></i>
-                </div>
-                <div class="service-content">
-                    <h4>Purchase Request Management</h4>
-                    <p>Create, track, and manage purchase requests with ease. Automated workflows ensure nothing falls through the cracks.</p>
-                </div>
-            </div>
-            
-            <div class="service-item">
-                <div class="service-icon">
-                    <i class="fas fa-store"></i>
-                </div>
-                <div class="service-content">
-                    <h4>Vendor Management</h4>
-                    <p>Maintain a database of approved vendors, track performance, and manage relationships effectively.</p>
-                </div>
-            </div>
-            
-            <div class="service-item">
-                <div class="service-icon">
-                    <i class="fas fa-hand-holding-usd"></i>
-                </div>
-                <div class="service-content">
-                    <h4>Quotation System</h4>
-                    <p>Receive and compare multiple vendor quotations to ensure best value for your organization.</p>
-                </div>
-            </div>
-            
-            <div class="service-item">
-                <div class="service-icon">
-                    <i class="fas fa-credit-card"></i>
-                </div>
-                <div class="service-content">
-                    <h4>Payment Tracking</h4>
-                    <p>Monitor payment status, track invoices, and maintain complete financial records.</p>
-                </div>
-            </div>
-            
-            <div class="service-item">
-                <div class="service-icon">
-                    <i class="fas fa-truck"></i>
-                </div>
-                <div class="service-content">
-                    <h4>Delivery Management</h4>
-                    <p>Track shipments, manage delivery schedules, and ensure timely receipt of goods.</p>
-                </div>
-            </div>
-        </section>
-        
-        <!-- Contact Section -->
-        <section class="contact-section" id="contact">
-            <div class="section-title">
-                <h2>Get In Touch</h2>
-                <p>Ready to streamline your procurement process?</p>
-            </div>
-            
-            <div class="contact-info">
-                <div class="contact-item">
-                    <div class="contact-icon">
-                        <i class="fas fa-envelope"></i>
-                    </div>
-                    <h4>Email Us</h4>
-                    <p>support@prmanagement.com</p>
-                </div>
-                
-                <div class="contact-item">
-                    <div class="contact-icon">
-                        <i class="fas fa-phone"></i>
-                    </div>
-                    <h4>Call Us</h4>
-                    <p>+1 (555) 123-4567</p>
-                </div>
-                
-                <div class="contact-item">
-                    <div class="contact-icon">
-                        <i class="fas fa-map-marker-alt"></i>
-                    </div>
-                    <h4>Visit Us</h4>
-                    <p>123 Business St, City</p>
-                </div>
-            </div>
-            
-            <div class="mt-5">
-                <a href="{% url 'register' %}" class="btn btn-primary btn-lg" style="padding: 15px 50px; font-size: 1.2rem;">
-                    <i class="fas fa-rocket mr-2"></i>Start Your Free Trial
-                </a>
-            </div>
-        </section>
+    {% else %}
+    <div class="empty-state">
+      <div class="empty-state-icon"><i class="fas fa-inbox"></i></div>
+      <h4>No Purchase Requests</h4>
+      <p>There are no active purchase requests at the moment.</p>
+      {% if user.profile.is_requester %}
+      <a href="{% url 'pr-create' %}" class="btn btn-primary">
+        <i class="fas fa-plus"></i> Create First Request
+      </a>
+      {% endif %}
     </div>
-  {% endif %}
+    {% endif %}
+  </div>
+</div>
 
-{% endblock content %}
+{% else %}
+<!-- ===== PUBLIC LANDING PAGE ===== -->
+
+<!-- Hero -->
+<section class="landing-hero">
+  <div class="landing-hero-content">
+    <h1>Purchase Request<br><span>Management Done Right</span></h1>
+    <p>Streamline your procurement workflow with fixed timelines, multi-vendor quotations, and full execution control — built for College of Engineering Poonjar.</p>
+    <div class="landing-hero-btns">
+      <a href="{% url 'register' %}" class="hero-btn-primary">
+        <i class="fas fa-rocket"></i> Get Started Free
+      </a>
+      <a href="{% url 'login' %}" class="hero-btn-secondary">
+        <i class="fas fa-sign-in-alt"></i> Login
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- Process Steps -->
+<section class="landing-section" id="process">
+  <div class="landing-section-title">
+    <h2>How It Works</h2>
+    <p>Five simple steps from request to delivery</p>
+  </div>
+  <div class="steps-grid">
+    <div class="step-card">
+      <div class="step-number">1</div>
+      <h3>Create Request</h3>
+      <p>Submit your purchase request with all required details and specifications.</p>
+    </div>
+    <div class="step-card">
+      <div class="step-number">2</div>
+      <h3>Get Quotations</h3>
+      <p>Receive competitive quotes from multiple verified vendors automatically.</p>
+    </div>
+    <div class="step-card">
+      <div class="step-number">3</div>
+      <h3>Approval Process</h3>
+      <p>Multi-level approval workflow ensures proper authorization and compliance.</p>
+    </div>
+    <div class="step-card">
+      <div class="step-number">4</div>
+      <h3>Track Progress</h3>
+      <p>Monitor your order in real-time with live updates and delivery tracking.</p>
+    </div>
+    <div class="step-card">
+      <div class="step-number">5</div>
+      <h3>Receive & Close</h3>
+      <p>Confirm delivery and auto-generate invoices to close the request.</p>
+    </div>
+  </div>
+</section>
+
+<!-- Features -->
+<section class="landing-section landing-section-alt" id="features">
+  <div class="landing-section-title">
+    <h2>Why Choose Us?</h2>
+    <p>Everything you need for efficient procurement management</p>
+  </div>
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="feature-icon"><i class="fas fa-bolt"></i></div>
+      <h3>Fast & Efficient</h3>
+      <p>Create and process purchase requests in minutes with automated workflows.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon"><i class="fas fa-users-cog"></i></div>
+      <h3>Role-Based Access</h3>
+      <p>Separate dashboards for Requesters, Vendors, Buyers, and Admins.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon"><i class="fas fa-file-invoice-dollar"></i></div>
+      <h3>Multi-Vendor Quotations</h3>
+      <p>Get competitive quotes from multiple vendors and select the best option.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon"><i class="fas fa-chart-line"></i></div>
+      <h3>Real-Time Tracking</h3>
+      <p>Monitor requests from creation to delivery with live status updates.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon"><i class="fas fa-shield-alt"></i></div>
+      <h3>Secure & Compliant</h3>
+      <p>Enterprise-grade security with complete audit trails for compliance.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon"><i class="fas fa-mobile-alt"></i></div>
+      <h3>Mobile Friendly</h3>
+      <p>Access from any device — desktop, tablet, or smartphone.</p>
+    </div>
+  </div>
+</section>
+
+<!-- Services -->
+<section class="landing-section" id="services">
+  <div class="landing-section-title">
+    <h2>Our Services</h2>
+    <p>Comprehensive procurement management solutions</p>
+  </div>
+  <div style="max-width:800px;margin:0 auto;display:flex;flex-direction:column;gap:16px;">
+    {% for service in services_list %}
+    <div class="feature-card" style="display:flex;align-items:flex-start;gap:20px;padding:24px;">
+      <div class="feature-icon" style="flex-shrink:0;margin:0;"><i class="{{ service.icon }}"></i></div>
+      <div>
+        <h3 style="margin-bottom:6px;">{{ service.title }}</h3>
+        <p>{{ service.desc }}</p>
+      </div>
+    </div>
+    {% empty %}
+    <div class="feature-card" style="display:flex;align-items:flex-start;gap:20px;padding:24px;">
+      <div class="feature-icon" style="flex-shrink:0;margin:0;"><i class="fas fa-file-alt"></i></div>
+      <div><h3>Purchase Request Management</h3><p>Create, track, and manage purchase requests with ease. Automated workflows ensure nothing falls through the cracks.</p></div>
+    </div>
+    <div class="feature-card" style="display:flex;align-items:flex-start;gap:20px;padding:24px;">
+      <div class="feature-icon" style="flex-shrink:0;margin:0;"><i class="fas fa-store"></i></div>
+      <div><h3>Vendor Management</h3><p>Maintain a database of approved vendors, track performance, and manage relationships effectively.</p></div>
+    </div>
+    <div class="feature-card" style="display:flex;align-items:flex-start;gap:20px;padding:24px;">
+      <div class="feature-icon" style="flex-shrink:0;margin:0;"><i class="fas fa-hand-holding-usd"></i></div>
+      <div><h3>Quotation System</h3><p>Receive and compare multiple vendor quotations to ensure best value for your organization.</p></div>
+    </div>
+    <div class="feature-card" style="display:flex;align-items:flex-start;gap:20px;padding:24px;">
+      <div class="feature-icon" style="flex-shrink:0;margin:0;"><i class="fas fa-credit-card"></i></div>
+      <div><h3>Payment Tracking</h3><p>Monitor payment status, track invoices, and maintain complete financial records.</p></div>
+    </div>
+    <div class="feature-card" style="display:flex;align-items:flex-start;gap:20px;padding:24px;">
+      <div class="feature-icon" style="flex-shrink:0;margin:0;"><i class="fas fa-truck"></i></div>
+      <div><h3>Delivery Management</h3><p>Track shipments, manage delivery schedules, and ensure timely receipt of goods.</p></div>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+
+<!-- Contact -->
+<section class="landing-section landing-section-alt" id="contact">
+  <div class="landing-section-title">
+    <h2>Get In Touch</h2>
+    <p>College of Engineering Poonjar, Kerala, India</p>
+  </div>
+  <div class="contact-grid">
+    <div class="contact-card">
+      <div class="contact-icon"><i class="fas fa-envelope"></i></div>
+      <h4>Email Us</h4>
+      <p>info@cepoonjar.ac.in</p>
+    </div>
+    <div class="contact-card">
+      <div class="contact-icon"><i class="fas fa-phone"></i></div>
+      <h4>Call Us</h4>
+      <p>+91 4828 278278</p>
+    </div>
+    <div class="contact-card">
+      <div class="contact-icon"><i class="fas fa-map-marker-alt"></i></div>
+      <h4>Visit Us</h4>
+      <p>Poonjar, Kottayam<br>Kerala 686582</p>
+    </div>
+  </div>
+  <div style="text-align:center;margin-top:48px;">
+    <a href="{% url 'register' %}" class="hero-btn-primary">
+      <i class="fas fa-rocket"></i> Start Your Free Trial
+    </a>
+  </div>
+</section>
+
+{% endif %}
+{% endblock %}

@@ -1,0 +1,325 @@
+{% extends "prs/layout.html" %}
+{% block page_title %}Track Order — {{ pr.pr_number }}{% endblock %}
+{% block content %}
+
+<div class="page-header">
+  <div class="page-header-left">
+    <h1><i class="fas fa-shipping-fast mr-2" style="color:var(--primary)"></i>Track Your Order</h1>
+    <p>PR #{{ pr.pr_number }}</p>
+  </div>
+  <div style="display:flex;gap:10px;align-items:center;">
+    <div class="live-badge" id="liveBadge">
+      <span class="live-dot"></span> Live
+    </div>
+    <a href="{% url 'pr-detail' pr.pk %}" class="btn btn-outline"><i class="fas fa-arrow-left"></i> Back</a>
+  </div>
+</div>
+
+<!-- Payment Confirmation Banner -->
+{% if pr.payment_transaction_id %}
+<div class="alert alert-success" style="margin-bottom:20px;">
+  <i class="fas fa-check-circle mr-2"></i>
+  <strong>Payment Confirmed</strong> — Transaction ID: <code>{{ pr.payment_transaction_id }}</code>
+  &nbsp;|&nbsp; Method: {{ pr.payment_method_used|title }}
+  &nbsp;|&nbsp; Amount: <strong>₹{{ pr.total }}</strong>
+</div>
+{% endif %}
+
+<div class="track-layout">
+
+  <!-- LEFT: Tracking Timeline -->
+  <div>
+    <div class="card" style="margin-bottom:20px;">
+      <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;">
+        <h5><i class="fas fa-map-marked-alt mr-2"></i>Delivery Status</h5>
+        <div id="trackingMeta" style="font-size:12px;color:var(--text-muted);">
+          {% if delivery and delivery.tracking_number %}
+          <i class="fas fa-barcode mr-1"></i>{{ delivery.tracking_number }}
+          {% if delivery.carrier %}&nbsp;via {{ delivery.carrier }}{% endif %}
+          {% endif %}
+        </div>
+      </div>
+      <div class="card-body">
+
+        <!-- Last updated -->
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:16px;">
+          <i class="fas fa-sync-alt mr-1" id="syncIcon"></i>
+          Last updated: <span id="lastUpdated">just now</span>
+          <span id="statusChangedBadge" style="display:none;" class="badge badge-green ml-2">
+            <i class="fas fa-bell mr-1"></i>Status Updated!
+          </span>
+        </div>
+
+        <!-- Timeline (rendered server-side, updated by JS) -->
+        <div class="track-timeline" id="trackTimeline">
+          {% include "prs/partials/track_timeline.html" %}
+        </div>
+
+        <div id="trackNotes" style="{% if not delivery or not delivery.notes %}display:none;{% endif %}background:var(--page-bg);border-radius:8px;padding:12px 16px;margin-top:16px;font-size:13px;color:var(--text-secondary);">
+          <i class="fas fa-info-circle mr-1" style="color:var(--primary)"></i>
+          <span id="trackNotesText">{% if delivery %}{{ delivery.notes }}{% endif %}</span>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Delivery Address -->
+    <div class="card">
+      <div class="card-header"><h5><i class="fas fa-map-marker-alt mr-2"></i>Delivery Address</h5></div>
+      <div class="card-body">
+        {% if pr.delivery_address %}
+        <p style="color:var(--text-secondary);white-space:pre-wrap;margin:0;">{{ pr.delivery_address }}</p>
+        {% else %}
+        <p class="text-muted">No delivery address provided.</p>
+        {% endif %}
+        {% if delivery and delivery.recipient_name %}
+        <div style="margin-top:10px;font-size:13px;color:var(--text-muted);">
+          <i class="fas fa-user mr-1"></i>{{ delivery.recipient_name }}
+          {% if delivery.recipient_contact %}&nbsp;|&nbsp;<i class="fas fa-envelope mr-1"></i>{{ delivery.recipient_contact }}{% endif %}
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: Order Info -->
+  <div>
+    <div class="card" style="margin-bottom:20px;">
+      <div class="card-header"><h5><i class="fas fa-receipt mr-2"></i>Order Details</h5></div>
+      <div class="card-body">
+        <div class="pay-summary-row"><span>PR Number</span><strong>{{ pr.pr_number }}</strong></div>
+        <div class="pay-summary-row"><span>Category</span><strong>{{ pr.category }}</strong></div>
+        <div class="pay-summary-row"><span>Item Type</span><strong>{{ pr.item_type }}</strong></div>
+        <div class="pay-summary-row"><span>Quantity</span><strong>{{ pr.quantity }}</strong></div>
+        {% if pr.vendor %}
+        <div class="pay-summary-row"><span>Vendor</span><strong>{{ pr.vendor.name }}</strong></div>
+        {% endif %}
+        <div class="pay-summary-divider"></div>
+        <div class="pay-summary-row pay-total-row">
+          <span>Amount Paid</span>
+          <strong style="color:var(--success);">₹{{ pr.total }}</strong>
+        </div>
+        <div class="pay-summary-row">
+          <span>Payment Status</span>
+          <span class="badge badge-green" id="paymentStatusBadge">{{ pr.payment_status }}</span>
+        </div>
+        <div class="pay-summary-row">
+          <span>Delivery Status</span>
+          <span id="deliveryStatusBadge"
+            class="badge {% if pr.delivery_status == 'Delivered' %}badge-green{% elif pr.delivery_status == 'In Transit' %}badge-orange{% elif pr.delivery_status == 'Cancelled' %}badge-red{% else %}badge-gray{% endif %}">
+            {{ pr.delivery_status }}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:20px;" id="delayCard" style="display:none;">
+      <div class="card-body">
+        <div class="alert alert-danger" style="margin:0;">
+          <i class="fas fa-exclamation-triangle mr-2"></i>
+          <strong>Delivery Delayed</strong> — Contact your buyer for updates.
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><h5><i class="fas fa-headset mr-2"></i>Need Help?</h5></div>
+      <div class="card-body" style="font-size:13px;color:var(--text-secondary);">
+        <p>For delivery issues, contact your procurement team or the vendor directly.</p>
+        {% if pr.vendor and pr.vendor.email %}
+        <a href="mailto:{{ pr.vendor.email }}" class="btn btn-outline btn-sm" style="margin-top:8px;">
+          <i class="fas fa-envelope mr-1"></i>Email Vendor
+        </a>
+        {% endif %}
+        <a href="{% url 'pr-detail' pr.pk %}" class="btn btn-outline btn-sm" style="margin-top:8px;">
+          <i class="fas fa-file-alt mr-1"></i>View PR Details
+        </a>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<style>
+.track-layout { display:grid; grid-template-columns:1fr 340px; gap:24px; align-items:start; }
+@media(max-width:768px){ .track-layout { grid-template-columns:1fr; } }
+
+/* Live badge */
+.live-badge {
+  display:inline-flex; align-items:center; gap:6px;
+  background:var(--success-light,#D1FAE5); color:#065F46;
+  border-radius:20px; padding:4px 12px; font-size:12px; font-weight:700;
+}
+.live-dot {
+  width:8px; height:8px; border-radius:50%; background:#10B981;
+  animation: livePulse 1.5s infinite;
+}
+@keyframes livePulse { 0%,100%{opacity:1;transform:scale(1);} 50%{opacity:.5;transform:scale(1.4);} }
+
+/* Timeline */
+.track-timeline { position:relative; padding-left:32px; }
+.track-step { position:relative; padding-bottom:28px; }
+.track-step:last-child { padding-bottom:0; }
+.track-step::before {
+  content:''; position:absolute; left:-20px; top:20px;
+  width:2px; height:100%; background:var(--card-border);
+}
+.track-step:last-child::before { display:none; }
+.track-step.done::before { background:var(--success); }
+.track-step.active::before { background:linear-gradient(to bottom, var(--primary), var(--card-border)); }
+
+.track-dot {
+  position:absolute; left:-28px; top:0;
+  width:18px; height:18px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  font-size:14px; background:var(--card-bg);
+}
+.track-step.done .track-dot { color:var(--success); }
+.track-step.active .track-dot { color:var(--primary); animation:dotPulse 1.5s infinite; }
+.track-step.pending .track-dot { color:var(--card-border); }
+.track-step.cancelled .track-dot { color:var(--danger); }
+@keyframes dotPulse { 0%,100%{transform:scale(1);} 50%{transform:scale(1.3);} }
+
+.track-title { font-size:14px; font-weight:700; color:var(--text-primary); }
+.track-sub { font-size:12px; color:var(--text-muted); margin-top:2px; }
+
+/* Spin animation for sync icon */
+.spinning { animation: spin .8s linear infinite; }
+@keyframes spin { from{transform:rotate(0deg);} to{transform:rotate(360deg);} }
+
+.pay-summary-row { display:flex; justify-content:space-between; align-items:center; padding:8px 0; font-size:13.5px; color:var(--text-secondary); }
+.pay-summary-divider { border-top:1px solid var(--card-border); margin:8px 0; }
+.pay-total-row { font-size:15px; font-weight:700; color:var(--text-primary); }
+</style>
+
+<script>
+const POLL_INTERVAL = 10000; // 10 seconds
+const STATUS_URL = "{% url 'pr-tracking-status' pr.pk %}";
+let lastStatus = "{{ pr.delivery_status }}";
+let pollTimer = null;
+
+function buildTimeline(data) {
+  const s = data.delivery_status;
+  const steps = [
+    {
+      cls: s !== 'Cancelled' ? 'done' : 'done',
+      icon: 'fa-check-circle',
+      title: 'Order Placed & Payment Confirmed',
+      sub: '{{ pr.payment_date|date:"F d, Y"|default:"Completed" }}'
+    },
+    {
+      cls: (s === 'In Transit' || s === 'Delivered') ? 'done' : (s === 'Cancelled' ? 'cancelled' : 'pending'),
+      icon: (s === 'In Transit' || s === 'Delivered') ? 'fa-check-circle' : (s === 'Cancelled' ? 'fa-times-circle' : 'fa-circle'),
+      title: 'Shipped',
+      sub: data.shipped_date || (s === 'In Transit' || s === 'Delivered' ? 'Dispatched' : 'Awaiting dispatch')
+    },
+    {
+      cls: s === 'In Transit' ? 'active' : (s === 'Delivered' ? 'done' : (s === 'Cancelled' ? 'cancelled' : 'pending')),
+      icon: s === 'Delivered' ? 'fa-check-circle' : (s === 'In Transit' ? 'fa-truck' : (s === 'Cancelled' ? 'fa-times-circle' : 'fa-circle')),
+      title: 'In Transit',
+      sub: s === 'In Transit'
+        ? '<span class="badge badge-orange">On the way</span>' + (data.expected_delivery_date ? ' &nbsp; Expected: ' + data.expected_delivery_date : '')
+        : (s === 'Delivered' ? 'Delivered' : 'Pending')
+    },
+    {
+      cls: s === 'Delivered' ? 'done' : (s === 'Cancelled' ? 'cancelled' : 'pending'),
+      icon: s === 'Delivered' ? 'fa-check-circle' : (s === 'Cancelled' ? 'fa-times-circle' : 'fa-circle'),
+      title: 'Delivered',
+      sub: data.actual_delivery_date || (s === 'Delivered' ? 'Delivered' : 'Pending')
+    }
+  ];
+
+  return steps.map(step => `
+    <div class="track-step ${step.cls}">
+      <div class="track-dot"><i class="fas ${step.icon}"></i></div>
+      <div class="track-content">
+        <div class="track-title">${step.title}</div>
+        <div class="track-sub">${step.sub}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function badgeClass(status) {
+  if (status === 'Delivered') return 'badge badge-green';
+  if (status === 'In Transit') return 'badge badge-orange';
+  if (status === 'Cancelled') return 'badge badge-red';
+  return 'badge badge-gray';
+}
+
+function timeSince(date) {
+  const secs = Math.floor((new Date() - date) / 1000);
+  if (secs < 10) return 'just now';
+  if (secs < 60) return secs + 's ago';
+  return Math.floor(secs / 60) + 'm ago';
+}
+
+let lastPollTime = new Date();
+
+function poll() {
+  const syncIcon = document.getElementById('syncIcon');
+  syncIcon.classList.add('spinning');
+
+  fetch(STATUS_URL, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+    .then(r => r.json())
+    .then(data => {
+      syncIcon.classList.remove('spinning');
+      lastPollTime = new Date();
+      document.getElementById('lastUpdated').textContent = timeSince(lastPollTime);
+
+      // Update timeline
+      document.getElementById('trackTimeline').innerHTML = buildTimeline(data);
+
+      // Update status badges
+      const dsBadge = document.getElementById('deliveryStatusBadge');
+      dsBadge.className = badgeClass(data.delivery_status);
+      dsBadge.textContent = data.delivery_status;
+
+      // Show "Status Updated!" flash if changed
+      if (data.delivery_status !== lastStatus) {
+        lastStatus = data.delivery_status;
+        const badge = document.getElementById('statusChangedBadge');
+        badge.style.display = '';
+        setTimeout(() => badge.style.display = 'none', 5000);
+      }
+
+      // Tracking meta
+      if (data.tracking_number) {
+        document.getElementById('trackingMeta').innerHTML =
+          `<i class="fas fa-barcode mr-1"></i>${data.tracking_number}` +
+          (data.carrier ? ` &nbsp;via ${data.carrier}` : '');
+      }
+
+      // Notes
+      if (data.notes) {
+        document.getElementById('trackNotes').style.display = '';
+        document.getElementById('trackNotesText').textContent = data.notes;
+      }
+
+      // Delay card
+      if (data.is_delayed) {
+        document.getElementById('delayCard').style.display = '';
+      }
+    })
+    .catch(() => { syncIcon.classList.remove('spinning'); });
+}
+
+// Update "last updated" text every second
+setInterval(() => {
+  document.getElementById('lastUpdated').textContent = timeSince(lastPollTime);
+}, 1000);
+
+// Poll every 10 seconds
+pollTimer = setInterval(poll, POLL_INTERVAL);
+
+// Stop polling when tab is hidden, resume when visible
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) {
+    clearInterval(pollTimer);
+  } else {
+    poll(); // immediate refresh on tab focus
+    pollTimer = setInterval(poll, POLL_INTERVAL);
+  }
+});
+</script>
+{% endblock %}

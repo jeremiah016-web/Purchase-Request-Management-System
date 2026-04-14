@@ -1,0 +1,250 @@
+{% extends "prs/layout.html" %}
+{% block page_title %}Pay for {{ pr.pr_number }}{% endblock %}
+{% block content %}
+
+<div class="page-header">
+  <div class="page-header-left">
+    <h1><i class="fas fa-credit-card mr-2" style="color:var(--primary)"></i>Approve & Pay</h1>
+    <p>PR #{{ pr.pr_number }}</p>
+  </div>
+  <a href="{% url 'pr-detail' pr.pk %}" class="btn btn-outline"><i class="fas fa-arrow-left"></i> Back</a>
+</div>
+
+{% if errors %}
+<div class="alert alert-danger">
+  <i class="fas fa-exclamation-circle mr-2"></i>
+  <ul style="margin:0;padding-left:18px;">{% for e in errors %}<li>{{ e }}</li>{% endfor %}</ul>
+</div>
+{% endif %}
+
+<div class="pay-layout">
+
+  <!-- LEFT: Order Summary -->
+  <div class="pay-summary card">
+    <div class="card-header"><h5><i class="fas fa-receipt mr-2"></i>Order Summary</h5></div>
+    <div class="card-body">
+      <div class="pay-summary-row">
+        <span>PR Number</span><strong>{{ pr.pr_number }}</strong>
+      </div>
+      <div class="pay-summary-row">
+        <span>Category</span><strong>{{ pr.category }}</strong>
+      </div>
+      <div class="pay-summary-row">
+        <span>Item Type</span><strong>{{ pr.item_type }}</strong>
+      </div>
+      <div class="pay-summary-row">
+        <span>Quantity</span><strong>{{ pr.quantity }}</strong>
+      </div>
+      {% if pr.vendor %}
+      <div class="pay-summary-row">
+        <span>Vendor</span><strong>{{ pr.vendor.name }}</strong>
+      </div>
+      {% endif %}
+      <div class="pay-summary-divider"></div>
+      <div class="pay-summary-row pay-total-row">
+        <span>Total Amount</span>
+        <strong style="font-size:22px;color:var(--success);">₹{{ pr.total }}</strong>
+      </div>
+      <div class="pay-summary-row" style="font-size:12px;color:var(--text-muted);">
+        <span><i class="fas fa-shield-alt mr-1" style="color:var(--success)"></i>Secure Payment</span>
+        <span>GST Included</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: Payment Form -->
+  <div>
+    <form method="POST" id="payForm">
+      {% csrf_token %}
+
+      <!-- Delivery Address -->
+      <div class="card" style="margin-bottom:20px;">
+        <div class="card-header"><h5><i class="fas fa-map-marker-alt mr-2"></i>Delivery Address</h5></div>
+        <div class="card-body">
+          <div class="ec-form-group">
+            <label>Full Delivery Address <span class="req">*</span></label>
+            <textarea name="delivery_address" rows="4" placeholder="Building/Room No, Department, College of Engineering Poonjar, Kerala 686582..." required>{{ delivery_address }}</textarea>
+            <div style="font-size:12px;color:var(--text-muted);margin-top:4px;"><i class="fas fa-info-circle mr-1"></i>Items will be delivered to this address.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Payment Method -->
+      <div class="card" style="margin-bottom:20px;">
+        <div class="card-header"><h5><i class="fas fa-wallet mr-2"></i>Payment Method</h5></div>
+        <div class="card-body">
+          <div class="pay-method-grid">
+            <label class="pay-method-card {% if payment_method == 'card' %}selected{% endif %}">
+              <input type="radio" name="payment_method" value="card" {% if payment_method == 'card' %}checked{% endif %} onchange="showPayFields()">
+              <i class="fas fa-credit-card"></i>
+              <span>Credit / Debit Card</span>
+            </label>
+            <label class="pay-method-card {% if payment_method == 'upi' %}selected{% endif %}">
+              <input type="radio" name="payment_method" value="upi" {% if payment_method == 'upi' %}checked{% endif %} onchange="showPayFields()">
+              <i class="fas fa-mobile-alt"></i>
+              <span>UPI</span>
+            </label>
+            <label class="pay-method-card {% if payment_method == 'netbanking' %}selected{% endif %}">
+              <input type="radio" name="payment_method" value="netbanking" {% if payment_method == 'netbanking' %}checked{% endif %} onchange="showPayFields()">
+              <i class="fas fa-university"></i>
+              <span>Net Banking</span>
+            </label>
+            <label class="pay-method-card {% if payment_method == 'wallet' %}selected{% endif %}">
+              <input type="radio" name="payment_method" value="wallet" {% if payment_method == 'wallet' %}checked{% endif %} onchange="showPayFields()">
+              <i class="fas fa-wallet"></i>
+              <span>Wallet</span>
+            </label>
+          </div>
+
+          <!-- Card Fields -->
+          <div id="fields-card" class="pay-fields" style="display:none;">
+            <div class="ec-form-grid" style="margin-top:16px;">
+              <div class="ec-form-group ec-full">
+                <label>Card Number</label>
+                <input type="text" name="card_number" id="cardNumber" maxlength="19" placeholder="1234 5678 9012 3456" oninput="formatCard(this)">
+              </div>
+              <div class="ec-form-group">
+                <label>Cardholder Name</label>
+                <input type="text" name="card_name" placeholder="Name on card">
+              </div>
+              <div class="ec-form-group">
+                <label>Expiry</label>
+                <input type="text" name="card_expiry" placeholder="MM / YY" maxlength="7" oninput="formatExpiry(this)">
+              </div>
+              <div class="ec-form-group">
+                <label>CVV</label>
+                <input type="password" name="card_cvv" maxlength="4" placeholder="•••">
+              </div>
+            </div>
+          </div>
+
+          <!-- UPI Fields -->
+          <div id="fields-upi" class="pay-fields" style="display:none;margin-top:16px;">
+            <div class="ec-form-group">
+              <label>UPI ID</label>
+              <input type="text" name="upi_id" placeholder="yourname@upi">
+            </div>
+            <div class="pay-upi-apps">
+              <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/UPI-Logo-vector.svg/200px-UPI-Logo-vector.svg.png" alt="UPI" style="height:28px;">
+              <span style="font-size:12px;color:var(--text-muted);">PhonePe · GPay · Paytm · BHIM</span>
+            </div>
+          </div>
+
+          <!-- Net Banking -->
+          <div id="fields-netbanking" class="pay-fields" style="display:none;margin-top:16px;">
+            <div class="ec-form-group">
+              <label>Select Bank</label>
+              <select name="bank_name">
+                <option value="">-- Select Bank --</option>
+                <option>State Bank of India</option>
+                <option>HDFC Bank</option>
+                <option>ICICI Bank</option>
+                <option>Axis Bank</option>
+                <option>Kotak Mahindra Bank</option>
+                <option>Punjab National Bank</option>
+                <option>Bank of Baroda</option>
+                <option>Canara Bank</option>
+                <option>Federal Bank</option>
+                <option>South Indian Bank</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Wallet -->
+          <div id="fields-wallet" class="pay-fields" style="display:none;margin-top:16px;">
+            <div class="pay-method-grid">
+              <label class="pay-method-card" style="cursor:default;">
+                <i class="fas fa-mobile-alt" style="color:#6366F1"></i><span>Paytm</span>
+              </label>
+              <label class="pay-method-card" style="cursor:default;">
+                <i class="fas fa-mobile-alt" style="color:#10B981"></i><span>PhonePe</span>
+              </label>
+              <label class="pay-method-card" style="cursor:default;">
+                <i class="fas fa-mobile-alt" style="color:#F59E0B"></i><span>Amazon Pay</span>
+              </label>
+            </div>
+            <input type="hidden" name="wallet_type" value="paytm">
+          </div>
+        </div>
+      </div>
+
+      <!-- Submit -->
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <a href="{% url 'pr-detail' pr.pk %}" class="btn btn-outline"><i class="fas fa-times"></i> Cancel</a>
+        <button type="submit" class="btn btn-primary btn-lg" id="payBtn">
+          <i class="fas fa-lock mr-2"></i>Pay ₹{{ pr.total }} Securely
+        </button>
+      </div>
+      <div style="text-align:center;margin-top:12px;font-size:12px;color:var(--text-muted);">
+        <i class="fas fa-shield-alt mr-1" style="color:var(--success)"></i>
+        256-bit SSL encrypted &nbsp;|&nbsp; PCI DSS compliant &nbsp;|&nbsp; Powered by Razorpay
+      </div>
+    </form>
+  </div>
+</div>
+
+<style>
+.pay-layout { display: grid; grid-template-columns: 340px 1fr; gap: 24px; align-items: start; }
+@media(max-width:768px){ .pay-layout { grid-template-columns: 1fr; } }
+.pay-summary-row { display:flex; justify-content:space-between; align-items:center; padding:8px 0; font-size:13.5px; color:var(--text-secondary); }
+.pay-summary-divider { border-top:1px solid var(--card-border); margin:8px 0; }
+.pay-total-row { font-size:15px; font-weight:700; color:var(--text-primary); }
+.pay-method-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; }
+.pay-method-card {
+  display:flex; flex-direction:column; align-items:center; gap:6px;
+  border:2px solid var(--card-border); border-radius:10px; padding:14px 10px;
+  cursor:pointer; transition:all .2s; font-size:13px; font-weight:600; color:var(--text-secondary);
+}
+.pay-method-card input[type=radio] { display:none; }
+.pay-method-card i { font-size:22px; color:var(--primary); }
+.pay-method-card:hover, .pay-method-card.selected { border-color:var(--primary); background:var(--info-light); color:var(--primary); }
+.pay-upi-apps { display:flex; align-items:center; gap:12px; margin-top:10px; }
+.ec-form-group input, .ec-form-group textarea, .ec-form-group select {
+  border-radius:8px; border:1.5px solid var(--card-border); padding:10px 14px;
+  font-size:13.5px; background:var(--card-bg); color:var(--text-primary); width:100%;
+}
+.ec-form-group input:focus, .ec-form-group textarea:focus, .ec-form-group select:focus {
+  border-color:var(--primary); outline:none; box-shadow:0 0 0 3px rgba(37,99,235,.1);
+}
+.ec-form-group label { font-size:13px; font-weight:600; color:var(--text-secondary); margin-bottom:6px; display:block; }
+.ec-form-group { margin-bottom:14px; }
+.ec-form-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+.ec-form-group.ec-full { grid-column:1/-1; }
+.req { color:var(--danger); }
+.btn-lg { padding:12px 28px; font-size:15px; }
+</style>
+
+<script>
+function showPayFields() {
+  const val = document.querySelector('input[name=payment_method]:checked')?.value;
+  document.querySelectorAll('.pay-fields').forEach(el => el.style.display = 'none');
+  document.querySelectorAll('.pay-method-card').forEach(el => el.classList.remove('selected'));
+  if (val) {
+    const el = document.getElementById('fields-' + val);
+    if (el) el.style.display = '';
+    // highlight selected label
+    const radio = document.querySelector('input[name=payment_method][value="' + val + '"]');
+    if (radio) radio.closest('.pay-method-card').classList.add('selected');
+  }
+}
+function formatCard(el) {
+  let v = el.value.replace(/\D/g,'').substring(0,16);
+  el.value = v.replace(/(.{4})/g,'$1 ').trim();
+}
+function formatExpiry(el) {
+  let v = el.value.replace(/\D/g,'').substring(0,4);
+  if (v.length >= 3) v = v.substring(0,2) + ' / ' + v.substring(2);
+  el.value = v;
+}
+// Init on load
+document.addEventListener('DOMContentLoaded', function() {
+  showPayFields();
+  // Animate pay button on submit
+  document.getElementById('payForm').addEventListener('submit', function() {
+    const btn = document.getElementById('payBtn');
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Processing...';
+    btn.disabled = true;
+  });
+});
+</script>
+{% endblock %}

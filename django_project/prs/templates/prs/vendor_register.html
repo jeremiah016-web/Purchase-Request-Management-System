@@ -1,219 +1,120 @@
 {% extends "prs/layout.html" %}
 {% load crispy_forms_tags %}
+{% block page_title %}Vendor Registration{% endblock %}
 {% block content %}
 
-<div class="content-card">
-    <div class="text-center mb-4">
-        <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
-            <i class="fas fa-store text-white" style="font-size: 36px;"></i>
-        </div>
-        <h2 style="color: #2d3748; font-weight: 700; margin-bottom: 10px;">Vendor Registration</h2>
-        <p class="text-muted">Register your business as a vendor</p>
-    </div>
+{% if user.is_authenticated %}
+<div class="page-header">
+  <div class="page-header-left">
+    <h1><i class="fas fa-store mr-2" style="color:var(--primary)"></i>Vendor Registration</h1>
+    <p>Register your business as a vendor</p>
+  </div>
+</div>
+{% endif %}
 
-    <!-- Registration Steps -->
-    <div class="row mb-4">
-        <div class="col-md-4 mb-3">
-            <div class="text-center p-3" style="background: #f8fafc; border-radius: 12px;">
-                <div style="width: 50px; height: 50px; background: #667eea; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px; color: white; font-weight: 700; font-size: 20px;">1</div>
-                <h6 style="color: #2d3748; font-weight: 600;">Fill Information</h6>
-                <p style="color: #718096; font-size: 14px; margin: 0;">Provide your business details</p>
-            </div>
-        </div>
-        <div class="col-md-4 mb-3">
-            <div class="text-center p-3" style="background: #f8fafc; border-radius: 12px;">
-                <div style="width: 50px; height: 50px; background: #48bb78; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px; color: white; font-weight: 700; font-size: 20px;">2</div>
-                <h6 style="color: #2d3748; font-weight: 600;">Admin Review</h6>
-                <p style="color: #718096; font-size: 14px; margin: 0;">Wait for admin approval</p>
-            </div>
-        </div>
-        <div class="col-md-4 mb-3">
-            <div class="text-center p-3" style="background: #f8fafc; border-radius: 12px;">
-                <div style="width: 50px; height: 50px; background: #ed8936; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px; color: white; font-weight: 700; font-size: 20px;">3</div>
-                <h6 style="color: #2d3748; font-weight: 600;">Start Receiving Orders</h6>
-                <p style="color: #718096; font-size: 14px; margin: 0;">Access your vendor dashboard</p>
-            </div>
-        </div>
-    </div>
+<div style="max-width:800px;{% if not user.is_authenticated %}margin:40px auto;{% endif %}">
 
-    <!-- Registration Form -->
-    <div style="background: white; border-radius: 15px; padding: 30px; box-shadow: 0 5px 15px rgba(0,0,0,0.05);">
-        <h5 style="color: #2d3748; font-weight: 600; margin-bottom: 20px;">
-            <i class="fas fa-building mr-2" style="color: #667eea;"></i>Business Information
-        </h5>
-        
-        <form method="POST">
-            {% csrf_token %}
-            
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="form-group">
-                        <label for="id_name">Business Name *</label>
-                        {{ form.name }}
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="form-group">
-                        <label for="id_contact_person">Contact Person</label>
-                        {{ form.contact_person }}
-                    </div>
-                </div>
-            </div>
-            
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="form-group">
-                        <label for="id_email">Email *</label>
-                        {{ form.email }}
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="form-group">
-                        <label for="id_phone">Phone</label>
-                        {{ form.phone }}
-                    </div>
-                </div>
-            </div>
-            
-            <div class="form-group">
-                <label for="id_address">Business Address</label>
-                {{ form.address }}
-            </div>
-            
-            <div class="form-group">
-                <label for="id_website">Website</label>
-                {{ form.website }}
-            </div>
-            
-            <hr class="my-4">
-            
-            <h5 style="color: #2d3748; font-weight: 600; margin-bottom: 20px;">
-                <i class="fas fa-file-invoice mr-2" style="color: #667eea;"></i>Business Details
-            </h5>
-            
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="form-group">
-                        <label for="id_tax_id">Tax ID / Business Registration Number</label>
-                        {{ form.tax_id }}
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="form-group">
-                        <label for="id_bank_account">Bank Account</label>
-                        {{ form.bank_account }}
-                    </div>
-                </div>
-            </div>
-            
-            <div class="form-group">
-                <label for="id_payment_terms">Payment Terms</label>
-                {{ form.payment_terms }}
-                <small class="form-text text-muted">e.g., Net 30, Net 60, COD</small>
-            </div>
-            
-            <div class="form-group">
-                <label for="id_categories" style="font-weight: 600; color: #2d3748; margin-bottom: 15px;">
-                    <i class="fas fa-tags mr-2" style="color: #667eea;"></i>Categories / Services You Provide *
-                </label>
-                <div style="background: #f8fafc; padding: 20px; border-radius: 12px; border: 2px solid #e2e8f0;">
-                    {{ form.categories }}
-                </div>
-                <small class="form-text text-muted mt-2">
-                    <i class="fas fa-info-circle mr-1"></i>
-                    Select all categories where you can provide products or services
-                </small>
-            </div>
-            
-            <div class="alert alert-info mt-4">
-                <i class="fas fa-info-circle mr-2"></i>
-                <strong>Note:</strong> Your registration will be reviewed by an administrator. You will be notified once your account is approved.
-            </div>
-            
-            <div class="mt-4">
-                <button class="btn btn-primary btn-lg btn-block" type="submit" style="border-radius: 12px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none;">
-                    <i class="fas fa-paper-plane mr-2"></i>Submit Registration
-                </button>
-                {% if not user.is_authenticated %}
-                <p class="text-center mt-3 mb-0">
-                    Already have an account? <a href="{% url 'login' %}">Login here</a>
-                </p>
-                {% endif %}
-            </div>
-        </form>
+  <!-- Steps -->
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px;">
+    <div class="step-card">
+      <div class="step-number">1</div>
+      <h3>Fill Information</h3>
+      <p>Provide your business details</p>
     </div>
+    <div class="step-card">
+      <div class="step-number" style="background:var(--success);">2</div>
+      <h3>Admin Review</h3>
+      <p>Wait for admin approval</p>
+    </div>
+    <div class="step-card">
+      <div class="step-number" style="background:var(--accent);">3</div>
+      <h3>Start Receiving Orders</h3>
+      <p>Access your vendor dashboard</p>
+    </div>
+  </div>
+
+  <div class="form-section">
+    <div class="form-section-title"><i class="fas fa-building"></i> Business Information</div>
+    <form method="POST">
+      {% csrf_token %}
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+        <div class="form-group">
+          <label class="form-label">Business Name *</label>
+          {{ form.name }}
+        </div>
+        <div class="form-group">
+          <label class="form-label">Contact Person</label>
+          {{ form.contact_person }}
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email *</label>
+          {{ form.email }}
+        </div>
+        <div class="form-group">
+          <label class="form-label">Phone</label>
+          {{ form.phone }}
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Business Address</label>
+        {{ form.address }}
+      </div>
+      <div class="form-group">
+        <label class="form-label">Website</label>
+        {{ form.website }}
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="form-section-title" style="margin-top:16px;"><i class="fas fa-file-invoice"></i> Business Details</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+        <div class="form-group">
+          <label class="form-label">Tax ID / Business Registration</label>
+          {{ form.tax_id }}
+        </div>
+        <div class="form-group">
+          <label class="form-label">Bank Account</label>
+          {{ form.bank_account }}
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Payment Terms</label>
+        {{ form.payment_terms }}
+        <div class="form-hint">e.g., Net 30, Net 60, COD</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label"><i class="fas fa-tags mr-1" style="color:var(--primary)"></i>Categories / Services You Provide *</label>
+        <div style="background:var(--page-bg);padding:16px;border-radius:10px;border:1.5px solid var(--card-border);">
+          {{ form.categories }}
+        </div>
+        <div class="form-hint"><i class="fas fa-info-circle mr-1"></i>Select all categories where you can provide products or services</div>
+      </div>
+
+      <div class="alert alert-info" style="margin-top:8px;">
+        <i class="fas fa-info-circle mr-2"></i>Your registration will be reviewed by an administrator. You will be notified once approved.
+      </div>
+
+      <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--card-border);">
+        <button class="btn btn-primary btn-lg w-100" type="submit"><i class="fas fa-paper-plane mr-2"></i>Submit Registration</button>
+        {% if not user.is_authenticated %}
+        <p style="text-align:center;margin-top:16px;color:var(--text-muted);font-size:13.5px;">
+          Already have an account? <a href="{% url 'login' %}" style="color:var(--primary);font-weight:600;">Login here</a>
+        </p>
+        {% endif %}
+      </div>
+    </form>
+  </div>
 </div>
 
 <style>
-    .form-control, .form-control:focus {
-        border-radius: 8px;
-        border: 2px solid #e2e8f0;
-        padding: 10px 15px;
-    }
-    
-    .form-control:focus {
-        border-color: #667eea;
-        box-shadow: 0 0 0 3px rgba(102,126,234,0.1);
-    }
-    
-    textarea.form-control {
-        min-height: 100px;
-    }
-    
-    /* Custom checkbox styling */
-    #id_categories {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 15px;
-    }
-    
-    #id_categories label {
-        display: flex;
-        align-items: center;
-        padding: 12px 15px;
-        background: white;
-        border: 2px solid #e2e8f0;
-        border-radius: 8px;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        font-weight: 500;
-        color: #4a5568;
-    }
-    
-    #id_categories label:hover {
-        border-color: #667eea;
-        background: #f7fafc;
-        transform: translateX(5px);
-    }
-    
-    #id_categories input[type="checkbox"] {
-        width: 20px;
-        height: 20px;
-        margin-right: 12px;
-        cursor: pointer;
-        accent-color: #667eea;
-    }
-    
-    #id_categories input[type="checkbox"]:checked + label,
-    #id_categories label:has(input[type="checkbox"]:checked) {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border-color: #667eea;
-        color: white;
-        font-weight: 600;
-    }
-    
-    /* Fix for Django's checkbox rendering */
-    #id_categories li {
-        list-style: none;
-        margin: 0;
-        padding: 0;
-    }
-    
-    #id_categories ul {
-        padding: 0;
-        margin: 0;
-        display: contents;
-    }
+  .form-section input, .form-section textarea, .form-section select { border-radius:8px; border:1.5px solid var(--card-border); padding:10px 14px; width:100%; font-family:inherit; font-size:13.5px; color:var(--text-primary); transition:all 0.2s; }
+  .form-section input:focus, .form-section textarea:focus, .form-section select:focus { outline:none; border-color:var(--primary); box-shadow:0 0 0 3px rgba(37,99,235,0.1); }
+  #id_categories { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:10px; }
+  #id_categories label { display:flex; align-items:center; padding:10px 14px; background:white; border:1.5px solid var(--card-border); border-radius:8px; cursor:pointer; font-weight:500; color:var(--text-secondary); transition:all 0.2s; }
+  #id_categories label:hover { border-color:var(--primary); color:var(--primary); }
+  #id_categories input[type="checkbox"] { width:18px; height:18px; margin-right:10px; accent-color:var(--primary); }
+  #id_categories li { list-style:none; margin:0; padding:0; }
+  #id_categories ul { padding:0; margin:0; display:contents; }
 </style>
 
-{% endblock content %}
+{% endblock %}

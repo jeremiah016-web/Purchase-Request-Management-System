@@ -1,16 +1,29 @@
 {% extends "prs/layout.html" %}
+{% block page_title %}Delete PR{% endblock %}
 {% block content %}
-    <legend class="mb-3">Delete Purchase Request</legend>
-    <div class="content-section">
-        <form method="POST">
-            {% csrf_token %}
-            <fieldset class="form-group">
-                <legend>Are you sure you want to delete the "{{ object.pr_number }}"?</legend>
-            </fieldset>
-            <div class="form-group">
-                <button class="btn btn-outline-danger" type="submit">Yes, Delete</button>
-                <a class="btn btn-outline-secondary" href="{% url 'pr-detail' object.id %}">Cancel</a>
-            </div>
-        </form>
+<div style="max-width:480px;margin:0 auto;">
+  <div class="card">
+    <div class="card-body" style="text-align:center;padding:40px 32px;">
+      <div style="width:72px;height:72px;background:var(--danger-light);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:28px;color:var(--danger);">
+        <i class="fas fa-trash-alt"></i>
+      </div>
+      <h3 style="font-size:18px;font-weight:700;margin-bottom:8px;">Delete Purchase Request</h3>
+      <p style="color:var(--text-muted);margin-bottom:24px;">
+        Are you sure you want to delete <strong>{{ object.pr_number }}</strong>?<br>
+        This action cannot be undone.
+      </p>
+      <form method="POST">
+        {% csrf_token %}
+        <div style="display:flex;gap:12px;justify-content:center;">
+          <a href="{% url 'pr-detail' object.id %}" class="btn btn-outline">
+            <i class="fas fa-arrow-left"></i> Cancel
+          </a>
+          <button type="submit" class="btn btn-danger">
+            <i class="fas fa-trash"></i> Yes, Delete
+          </button>
+        </div>
+      </form>
     </div>
-{% endblock content %}
+  </div>
+</div>
+{% endblock %}

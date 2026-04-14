@@ -1,171 +1,91 @@
 {% extends "prs/layout.html" %}
+{% block page_title %}Buyer Dashboard{% endblock %}
 {% block content %}
 
-<div class="content-card">
-    <!-- Dashboard Header -->
-    <div class="d-flex align-items-center justify-content-between mb-4">
-        <div class="d-flex align-items-center">
-            <div class="mr-3">
-                <div style="width: 50px; height: 50px; background: linear-gradient(135deg, #48bb78 0%, #38a169 100%); border-radius: 15px; display: flex; align-items: center; justify-content: center;">
-                    <i class="fas fa-shopping-cart text-white" style="font-size: 24px;"></i>
-                </div>
-            </div>
-            <div>
-                <h2 class="mb-1" style="color: #2d3748; font-weight: 700;">Buyer Dashboard</h2>
-                <p class="text-muted mb-0">Review and process purchase requests</p>
-            </div>
-        </div>
-    </div>
-
-    <!-- Statistics Cards -->
-    <div class="row mb-4">
-        <div class="col-md-3 mb-3">
-            <div style="background: white; border-radius: 16px; padding: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.02); border-left: 4px solid #ed8936;">
-                <div class="d-flex align-items-center justify-content-between">
-                    <div>
-                        <span style="color: #718096; font-size: 13px; font-weight: 600;">OPEN</span>
-                        <h3 style="color: #2d3748; font-weight: 700; margin: 5px 0;">{{ open_count }}</h3>
-                    </div>
-                    <div style="width: 50px; height: 50px; background: rgba(237,137,54,0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
-                        <i class="fas fa-folder-open" style="color: #ed8936; font-size: 24px;"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3 mb-3">
-            <div style="background: white; border-radius: 16px; padding: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.02); border-left: 4px solid #f6ad55;">
-                <div class="d-flex align-items-center justify-content-between">
-                    <div>
-                        <span style="color: #718096; font-size: 13px; font-weight: 600;">PENDING</span>
-                        <h3 style="color: #2d3748; font-weight: 700; margin: 5px 0;">{{ pending_count }}</h3>
-                    </div>
-                    <div style="width: 50px; height: 50px; background: rgba(246,173,85,0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
-                        <i class="fas fa-clock" style="color: #f6ad55; font-size: 24px;"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3 mb-3">
-            <div style="background: white; border-radius: 16px; padding: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.02); border-left: 4px solid #48bb78;">
-                <div class="d-flex align-items-center justify-content-between">
-                    <div>
-                        <span style="color: #718096; font-size: 13px; font-weight: 600;">APPROVAL</span>
-                        <h3 style="color: #2d3748; font-weight: 700; margin: 5px 0;">{{ approval_count }}</h3>
-                    </div>
-                    <div style="width: 50px; height: 50px; background: rgba(72,187,120,0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
-                        <i class="fas fa-check-circle" style="color: #48bb78; font-size: 24px;"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3 mb-3">
-            <div style="background: white; border-radius: 16px; padding: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.02); border-left: 4px solid #667eea;">
-                <div class="d-flex align-items-center justify-content-between">
-                    <div>
-                        <span style="color: #718096; font-size: 13px; font-weight: 600;">ON HOLD</span>
-                        <h3 style="color: #2d3748; font-weight: 700; margin: 5px 0;">{{ on_hold_count }}</h3>
-                    </div>
-                    <div style="width: 50px; height: 50px; background: rgba(102,126,234,0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
-                        <i class="fas fa-pause-circle" style="color: #667eea; font-size: 24px;"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- PRs Requiring Action -->
-    <div style="background: white; border-radius: 20px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.03);">
-        <div class="d-flex align-items-center justify-content-between mb-4">
-            <h4 style="color: #2d3748; font-weight: 600; margin: 0;">
-                <i class="fas fa-tasks mr-2" style="color: #48bb78;"></i>
-                Purchase Requests Requiring Action
-            </h4>
-            <span class="badge badge-primary" style="font-size: 14px; padding: 8px 15px;">{{ prs|length }} PRs</span>
-        </div>
-
-        {% if prs %}
-        <div class="table-responsive">
-            <table class="table table-hover">
-                <thead style="background: #f8fafc;">
-                    <tr>
-                        <th style="border: none; color: #4a5568; font-weight: 600; padding: 15px;">PR Number</th>
-                        <th style="border: none; color: #4a5568; font-weight: 600; padding: 15px;">Category</th>
-                        <th style="border: none; color: #4a5568; font-weight: 600; padding: 15px;">Requester</th>
-                        <th style="border: none; color: #4a5568; font-weight: 600; padding: 15px;">Status</th>
-                        <th style="border: none; color: #4a5568; font-weight: 600; padding: 15px;">Date</th>
-                        <th style="border: none; color: #4a5568; font-weight: 600; padding: 15px;">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for pr in prs %}
-                    <tr style="border-bottom: 1px solid #e2e8f0;">
-                        <td style="padding: 15px; vertical-align: middle;">
-                            <a href="{% url 'pr-detail' pr.id %}" style="color: #667eea; font-weight: 600; text-decoration: none;">
-                                {{ pr.pr_number }}
-                            </a>
-                        </td>
-                        <td style="padding: 15px; vertical-align: middle;">
-                            <span class="badge badge-secondary" style="padding: 6px 12px;">{{ pr.category }}</span>
-                        </td>
-                        <td style="padding: 15px; vertical-align: middle;">
-                            <div class="d-flex align-items-center">
-                                <img src="{{ pr.author.profile.image.url }}" alt="{{ pr.author.username }}" 
-                                     style="width: 32px; height: 32px; border-radius: 50%; margin-right: 10px; object-fit: cover;">
-                                <span style="color: #2d3748; font-weight: 500;">{{ pr.author.username }}</span>
-                            </div>
-                        </td>
-                        <td style="padding: 15px; vertical-align: middle;">
-                            {% if pr.status == 'Open' %}
-                                <span class="badge" style="background: #fed7d7; color: #c53030; padding: 6px 12px;">
-                                    <i class="fas fa-folder-open mr-1"></i>{{ pr.status }}
-                                </span>
-                            {% elif pr.status == 'Pending' %}
-                                <span class="badge" style="background: #feebc8; color: #c05621; padding: 6px 12px;">
-                                    <i class="fas fa-clock mr-1"></i>{{ pr.status }}
-                                </span>
-                            {% endif %}
-                        </td>
-                        <td style="padding: 15px; vertical-align: middle; color: #718096;">
-                            {{ pr.date_posted|date:"M d, Y" }}
-                        </td>
-                        <td style="padding: 15px; vertical-align: middle;">
-                            <a href="{% url 'pr-approve' pr.id %}" class="btn btn-sm btn-success" style="border-radius: 8px; margin-right: 5px;">
-                                <i class="fas fa-check mr-1"></i>Approve
-                            </a>
-                            <a href="{% url 'pr-reject' pr.id %}" class="btn btn-sm btn-danger" style="border-radius: 8px; margin-right: 5px;">
-                                <i class="fas fa-times mr-1"></i>Reject
-                            </a>
-                            <a href="{% url 'pr-detail' pr.id %}" class="btn btn-sm btn-outline-secondary" style="border-radius: 8px;">
-                                <i class="fas fa-eye mr-1"></i>View
-                            </a>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        {% else %}
-        <div class="text-center py-5">
-            <div style="width: 80px; height: 80px; background: #f8fafc; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
-                <i class="fas fa-check-double" style="color: #48bb78; font-size: 36px;"></i>
-            </div>
-            <h5 style="color: #2d3748; font-weight: 600; margin-bottom: 10px;">All Caught Up!</h5>
-            <p style="color: #718096; margin: 0;">There are no purchase requests requiring your attention at the moment.</p>
-        </div>
-        {% endif %}
-    </div>
+<div class="page-header">
+  <div class="page-header-left">
+    <h1>Buyer Dashboard</h1>
+    <p>Review and process purchase requests</p>
+  </div>
 </div>
 
-<style>
-    .table-hover tbody tr:hover {
-        background-color: #f8fafc;
-    }
-    
-    .btn-sm {
-        padding: 6px 12px;
-        font-size: 13px;
-        font-weight: 600;
-    }
-</style>
+<div class="stat-grid">
+  <div class="stat-card">
+    <div class="stat-card-top"><div class="stat-card-icon orange"><i class="fas fa-folder-open"></i></div></div>
+    <div class="stat-card-value">{{ open_count }}</div>
+    <div class="stat-card-label">Open</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-card-top"><div class="stat-card-icon blue"><i class="fas fa-clock"></i></div></div>
+    <div class="stat-card-value">{{ pending_count }}</div>
+    <div class="stat-card-label">Pending</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-card-top"><div class="stat-card-icon green"><i class="fas fa-check-circle"></i></div></div>
+    <div class="stat-card-value">{{ approval_count }}</div>
+    <div class="stat-card-label">Approved</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-card-top"><div class="stat-card-icon red"><i class="fas fa-pause-circle"></i></div></div>
+    <div class="stat-card-value">{{ on_hold_count }}</div>
+    <div class="stat-card-label">On Hold</div>
+  </div>
+</div>
 
-{% endblock content %}
+<div class="card">
+  <div class="card-header">
+    <h5><i class="fas fa-tasks" style="color:var(--success);margin-right:8px;"></i>Requests Requiring Action</h5>
+    <span class="badge badge-blue">{{ prs|length }} pending</span>
+  </div>
+  <div class="card-body" style="padding:0;">
+    {% if prs %}
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>PR Number</th>
+          <th>Category</th>
+          <th>Requester</th>
+          <th>Status</th>
+          <th>Date</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for pr in prs %}
+        <tr>
+          <td><a href="{% url 'pr-detail' pr.id %}">{{ pr.pr_number }}</a></td>
+          <td><span class="badge badge-gray">{{ pr.category }}</span></td>
+          <td>
+            <div class="d-flex align-items-center gap-2">
+              <img class="avatar-sm" src="{{ pr.author.profile.image.url }}" alt="{{ pr.author.username }}">
+              {{ pr.author.username }}
+            </div>
+          </td>
+          <td>
+            {% if pr.status == 'Open' %}<span class="badge badge-orange">Open</span>
+            {% elif pr.status == 'Pending' %}<span class="badge badge-blue">Pending</span>
+            {% else %}<span class="badge badge-gray">{{ pr.status }}</span>{% endif %}
+          </td>
+          <td style="color:var(--text-muted);">{{ pr.date_posted|date:"M d, Y" }}</td>
+          <td>
+            <div class="d-flex gap-2">
+              <a href="{% url 'pr-approve' pr.id %}" class="btn btn-success btn-sm">
+                <i class="fas fa-check"></i> Approve
+              </a>
+              <a href="{% url 'pr-detail' pr.id %}" class="btn btn-outline btn-sm">View</a>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">
+      <div class="empty-state-icon" style="color:var(--success);"><i class="fas fa-check-double"></i></div>
+      <h4>All Caught Up!</h4>
+      <p>No purchase requests require your attention right now.</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

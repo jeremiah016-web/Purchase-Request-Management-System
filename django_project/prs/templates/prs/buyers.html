@@ -1,17 +1,52 @@
 {% extends "prs/layout.html" %}
+{% block page_title %}Buyers{% endblock %}
 {% block content %}
 
-    {% if user.username %}
-      <legend class="mb-3">Buyers</legend>
-      <article class="media content-section">
-        <div class="media-body">
-          <ul class="list-group list-group-flush navbar-nav">
-            {% for buyer in buyers %}
-            <li class="list-group-item nav-item"><a class='nav-link' href="{% url 'user-prs' buyer.username %}">{{ buyer.username }}</a></li>
-            {% endfor %}
-          </ul>
-        </div>
-      </article>
-    {% endif %}
+<div class="page-header">
+  <div class="page-header-left">
+    <h1><i class="fas fa-briefcase mr-2" style="color:var(--primary)"></i>Buyers</h1>
+    <p>All procurement buyers in the system</p>
+  </div>
+</div>
 
-{% endblock content %}
+<div class="card">
+  <div class="card-header">
+    <h5><i class="fas fa-users mr-2"></i>Buyer List</h5>
+    <span class="badge badge-blue">{{ buyers|length }} buyers</span>
+  </div>
+  {% if buyers %}
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Username</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for buyer in buyers %}
+      <tr>
+        <td>
+          <div class="d-flex align-items-center gap-2">
+            <div style="width:32px;height:32px;background:var(--primary-light);border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--primary);font-weight:700;font-size:13px;">
+              {{ buyer.username|first|upper }}
+            </div>
+            {{ buyer.username }}
+          </div>
+        </td>
+        <td>
+          <a href="{% url 'user-prs' buyer.username %}" class="btn btn-outline btn-sm"><i class="fas fa-folder-open mr-1"></i>View PRs</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="empty-state">
+    <div class="empty-state-icon"><i class="fas fa-users"></i></div>
+    <h4>No Buyers Found</h4>
+    <p>Buyers will appear here once registered.</p>
+  </div>
+  {% endif %}
+</div>
+
+{% endblock %}

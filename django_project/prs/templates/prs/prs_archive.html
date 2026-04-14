@@ -1,62 +1,84 @@
 {% extends "prs/layout.html" %}
+{% block page_title %}PR Archive{% endblock %}
 {% block content %}
-  {% if user.username %}
-    <legend class="mb-3">Purchase Requests archived ({{ prs.count }})</legend>
-    {% for pr in prs %}
-        <article class="media content-section">
-          <img class="rounded-circle article-img" src="{{ pr.author.profile.image.url }}">
-          <div class="media-body">
 
-            <div class="article-metadata">
-              <a class="mr-3" href="{% url 'user-prs' pr.author.username %}">{{ pr.author }}</a>
-              <small class="text-muted small">{{ pr.date_posted|date:"F d, Y" }}</small>
-            </div>
+<div class="page-header">
+  <div class="page-header-left">
+    <h1><i class="fas fa-archive mr-2" style="color:var(--primary)"></i>Purchase Requests Archive</h1>
+    <p>Archived purchase requests ({{ prs.count }})</p>
+  </div>
+</div>
 
-            <table width="100%">
-              <tr>
-                <td class='article-details' width="20%"><a class="article-title" href="{% url 'pr-detail' pr.id %}">{{ pr.pr_number }}</a></td>
-                <td class='article-details text-muted' width="20%">Total:</td>
-                <td class='article-details text-muted' width="20%">Status:</td>
-                <td class='article-details text-muted' width="40%">Category:</td>
-              </tr>
-              <tr>
-                <td class='article-details' width="20%"></td>
-                <td class='article-details text-muted' width="20%">{{ pr.total }} EUR</td>
-                <td class='article-details text-muted' width="20%">{{ pr.status }}</td>
-                <td class='article-details text-muted' width="40%">{{ pr.category }}</td>
-              </tr>
-            </table>
-
+<div class="card">
+  <div class="card-header">
+    <h5><i class="fas fa-list mr-2"></i>Archived PRs</h5>
+  </div>
+  {% if prs %}
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>PR Number</th>
+        <th>Requester</th>
+        <th>Category</th>
+        <th>Total</th>
+        <th>Status</th>
+        <th>Date</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for pr in prs %}
+      <tr>
+        <td><a href="{% url 'pr-detail' pr.id %}">{{ pr.pr_number }}</a></td>
+        <td>
+          <div class="d-flex align-items-center gap-2">
+            <img src="{{ pr.author.profile.image.url }}" class="avatar-sm" alt="{{ pr.author.username }}">
+            <a href="{% url 'user-prs' pr.author.username %}">{{ pr.author.username }}</a>
           </div>
-        </article>
-    {% endfor %}
+        </td>
+        <td><span class="badge badge-gray">{{ pr.category }}</span></td>
+        <td>₹{{ pr.total }}</td>
+        <td>
+          {% if pr.status == 'Open' %}<span class="badge badge-blue">{{ pr.status }}</span>
+          {% elif pr.status == 'Pending' %}<span class="badge badge-orange">{{ pr.status }}</span>
+          {% elif pr.status == 'Approval' %}<span class="badge badge-green">{{ pr.status }}</span>
+          {% elif pr.status == 'Closed' %}<span class="badge badge-gray">{{ pr.status }}</span>
+          {% else %}<span class="badge badge-purple">{{ pr.status }}</span>{% endif %}
+        </td>
+        <td>{{ pr.date_posted|date:"M d, Y" }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
 
-    {% if is_paginated %}
-
+  {% if is_paginated %}
+  <div class="card-body" style="border-top:1px solid var(--card-border)">
+    <nav class="pagination">
       {% if page_obj.has_previous %}
-        <a class="btn btn-outline-secondary mb-4" href="?page=1">First</a>
-        <a class="btn btn-outline-secondary mb-4" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+        <a class="page-link" href="?page=1">First</a>
+        <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Prev</a>
       {% endif %}
-
       {% for num in page_obj.paginator.page_range %}
         {% if page_obj.number == num %}
-          <a class="btn btn-secondary mb-4" href="?page={{ num }}">{{ num }}</a>
+          <span class="page-item active"><a class="page-link" href="?page={{ num }}">{{ num }}</a></span>
         {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
-          <a class="btn btn-outline-secondary mb-4" href="?page={{ num }}">{{ num }}</a>
+          <a class="page-link" href="?page={{ num }}">{{ num }}</a>
         {% endif %}
       {% endfor %}
-
       {% if page_obj.has_next %}
-        <a class="btn btn-outline-secondary mb-4" href="?page={{ page_obj.next_page_number }}">Next</a>
-        <a class="btn btn-outline-secondary mb-4" href="?page={{ page_obj.paginator.num_pages }}">Last</a>
+        <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Last</a>
       {% endif %}
-
-    {% endif %}
-
-  {% else %}
-    <h4> Welcome to PR Management System.</h4>
-    <h6>Login or Register in order to access PR View Panel.</h6>
-    <img src="media/city.png">
+    </nav>
+  </div>
   {% endif %}
 
-{% endblock content %}
+  {% else %}
+  <div class="empty-state">
+    <div class="empty-state-icon"><i class="fas fa-archive"></i></div>
+    <h4>No Archived PRs</h4>
+    <p>Archived purchase requests will appear here.</p>
+  </div>
+  {% endif %}
+</div>
+
+{% endblock %}

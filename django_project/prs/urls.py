@@ -60,4 +60,14 @@ urlpatterns = [
     
     # AJAX URLs
     path('api/get-item-types/', views.get_item_types, name='get-item-types'),
+    path('api/get-pr-vendor/', views.get_pr_vendor, name='get-pr-vendor'),
+
+    # Requester payment & tracking
+    path('pr/<int:pk>/payment/', views.pr_payment, name='pr-payment'),
+    path('pr/<int:pk>/tracking/', views.pr_tracking, name='pr-tracking'),
+    path('pr/<int:pk>/tracking/status/', views.pr_tracking_status, name='pr-tracking-status'),
+
+    # Vendor profile & shipping
+    path('vendor/profile/edit/', views.vendor_profile_edit, name='vendor-profile-edit'),
+    path('pr/<int:pk>/ship/', views.vendor_ship_order, name='vendor-ship-order'),
 ]

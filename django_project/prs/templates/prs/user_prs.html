@@ -1,52 +1,87 @@
 {% extends "prs/layout.html" %}
+{% block page_title %}{{ view.kwargs.username }}'s Requests{% endblock %}
 {% block content %}
-    <legend class="mb-3">PRs from {{ view.kwargs.username }} ({{ page_obj.paginator.count }})</legend>
-    {% for pr in prs %}
-        <article class="media content-section">
-          <img class="rounded-circle article-img" src="{{ pr.author.profile.image.url }}">
-          <div class="media-body">
-            <div class="article-metadata">
-              <a class="mr-2" href="{% url 'user-prs' pr.author.username %}">{{ pr.author }}</a>
-              <small class="text-muted">{{ pr.date_posted|date:"F d, Y" }}</small>
-            </div>
 
-            <table width="100%">
-              <tr>
-                <td class='article-details' width="20%"><a class="article-title" href="{% url 'pr-detail' pr.id %}">{{ pr.pr_number }}</a></td>
-                <td class='article-details text-muted' width="20%">Total:</td>
-                <td class='article-details text-muted' width="20%">Status:</td>
-                <td class='article-details text-muted' width="40%">Category:</td>
-              </tr>
-              <tr>
-                <td class='article-details' width="20%"></td>
-                <td class='article-details text-muted' width="20%">{{ pr.total }} EUR</td>
-                <td class='article-details text-muted' width="20%">{{ pr.status }}</td>
-                <td class='article-details text-muted' width="40%">{{ pr.category }}</td>
-              </tr>
-            </table>
+<div class="page-header">
+  <div class="page-header-left">
+    <h1><i class="fas fa-folder-open mr-2" style="color:var(--primary)"></i>{{ view.kwargs.username }}'s Requests</h1>
+    <p>{{ page_obj.paginator.count }} purchase request{{ page_obj.paginator.count|pluralize }}</p>
+  </div>
+  {% if user.profile.is_requester %}
+  <a href="{% url 'pr-create' %}" class="btn btn-primary"><i class="fas fa-plus"></i> New Request</a>
+  {% endif %}
+</div>
 
-          </div>
-        </article>
-    {% endfor %}
-    {% if is_paginated %}
+<div class="card">
+  <div class="card-header">
+    <h5><i class="fas fa-list mr-2"></i>Purchase Requests</h5>
+  </div>
+  {% if prs %}
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>PR Number</th>
+        <th>Category</th>
+        <th>Total</th>
+        <th>Status</th>
+        <th>Date</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for pr in prs %}
+      <tr>
+        <td><a href="{% url 'pr-detail' pr.id %}">{{ pr.pr_number }}</a></td>
+        <td><span class="badge badge-gray">{{ pr.category }}</span></td>
+        <td>₹{{ pr.total }}</td>
+        <td>
+          {% if pr.status == 'Open' %}<span class="badge badge-blue">{{ pr.status }}</span>
+          {% elif pr.status == 'Pending' %}<span class="badge badge-orange">{{ pr.status }}</span>
+          {% elif pr.status == 'Approval' %}<span class="badge badge-green">{{ pr.status }}</span>
+          {% elif pr.status == 'Closed' %}<span class="badge badge-gray">{{ pr.status }}</span>
+          {% else %}<span class="badge badge-purple">{{ pr.status }}</span>{% endif %}
+        </td>
+        <td>{{ pr.date_posted|date:"M d, Y" }}</td>
+        <td>
+          <a href="{% url 'pr-detail' pr.id %}" class="btn btn-outline btn-sm"><i class="fas fa-eye"></i></a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
 
+  {% if is_paginated %}
+  <div class="card-body" style="border-top:1px solid var(--card-border)">
+    <nav class="pagination">
       {% if page_obj.has_previous %}
-        <a class="btn btn-outline-secondary mb-4" href="?page=1">First</a>
-        <a class="btn btn-outline-secondary mb-4" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+        <a class="page-link" href="?page=1">First</a>
+        <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Prev</a>
       {% endif %}
-
       {% for num in page_obj.paginator.page_range %}
         {% if page_obj.number == num %}
-          <a class="btn btn-secondary mb-4" href="?page={{ num }}">{{ num }}</a>
+          <span class="page-item active"><a class="page-link" href="?page={{ num }}">{{ num }}</a></span>
         {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
-          <a class="btn btn-outline-secondary mb-4" href="?page={{ num }}">{{ num }}</a>
+          <a class="page-link" href="?page={{ num }}">{{ num }}</a>
         {% endif %}
       {% endfor %}
-
       {% if page_obj.has_next %}
-        <a class="btn btn-outline-secondary mb-4" href="?page={{ page_obj.next_page_number }}">Next</a>
-        <a class="btn btn-outline-secondary mb-4" href="?page={{ page_obj.paginator.num_pages }}">Last</a>
+        <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Last</a>
       {% endif %}
+    </nav>
+  </div>
+  {% endif %}
 
+  {% else %}
+  <div class="empty-state">
+    <div class="empty-state-icon"><i class="fas fa-folder-open"></i></div>
+    <h4>No Requests Yet</h4>
+    <p>Purchase requests will appear here once created.</p>
+    {% if user.profile.is_requester %}
+    <a href="{% url 'pr-create' %}" class="btn btn-primary"><i class="fas fa-plus"></i> Create First Request</a>
     {% endif %}
-{% endblock content %}
+  </div>
+  {% endif %}
+</div>
+
+{% endblock %}

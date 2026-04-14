@@ -1,484 +1,119 @@
 {% extends "prs/layout.html" %}
 {% load crispy_forms_tags %}
+{% block page_title %}Register{% endblock %}
 {% block content %}
 
-<div class="content-card" style="max-width: 700px; margin: 0 auto;">
-    <!-- Registration Header -->
-    <div class="text-center mb-5">
-        <div style="width: 90px; height: 90px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 25px; display: flex; align-items: center; justify-content: center; margin: 0 auto 25px; box-shadow: 0 15px 30px rgba(102,126,234,0.3); animation: float 3s ease-in-out infinite;">
-            <i class="fas fa-user-plus text-white" style="font-size: 42px;"></i>
-        </div>
-        <h2 style="color: #2d3748; font-weight: 800; font-size: 32px; margin-bottom: 10px; letter-spacing: -0.5px;">
-            Create an Account
-        </h2>
-        <p class="text-muted" style="font-size: 16px; max-width: 450px; margin: 0 auto;">
-            <i class="fas fa-sparkles mr-2" style="color: #667eea;"></i>
-            Join PR Management System and streamline your purchase requests
-        </p>
+<div style="min-height:80vh;display:flex;align-items:center;justify-content:center;padding:40px 20px;">
+  <div style="width:100%;max-width:680px;">
+    <div style="text-align:center;margin-bottom:32px;">
+      <div style="width:64px;height:64px;background:var(--primary);border-radius:16px;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;box-shadow:0 8px 24px rgba(37,99,235,0.3);">
+        <i class="fas fa-user-plus" style="font-size:28px;color:white;"></i>
+      </div>
+      <h2 style="font-size:24px;font-weight:800;color:var(--text-primary);margin-bottom:6px;">Create an Account</h2>
+      <p style="color:var(--text-muted);font-size:14px;">Join PR Management System and streamline your purchase requests</p>
     </div>
 
-    <!-- Registration Form Container -->
-    <div style="background: white; border-radius: 30px; padding: 35px; box-shadow: 0 20px 40px rgba(0,0,0,0.05); margin-bottom: 25px;">
-        <!-- Progress Steps -->
-        <div class="mb-5">
-            <div class="d-flex justify-content-between align-items-center">
-                <div class="text-center" style="flex: 1;">
-                    <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin: 0 auto 8px; color: white; font-weight: 600;">
-                        <i class="fas fa-user"></i>
-                    </div>
-                    <span style="font-size: 13px; font-weight: 600; color: #2d3748;">Account</span>
-                </div>
-                <div style="flex: 0.5; height: 2px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);"></div>
-                <div class="text-center" style="flex: 1;">
-                    <div style="width: 40px; height: 40px; background: #edf2f7; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin: 0 auto 8px; color: #a0aec0; font-weight: 600;">
-                        <i class="fas fa-envelope"></i>
-                    </div>
-                    <span style="font-size: 13px; color: #718096;">Verification</span>
-                </div>
-                <div style="flex: 0.5; height: 2px; background: #e2e8f0;"></div>
-                <div class="text-center" style="flex: 1;">
-                    <div style="width: 40px; height: 40px; background: #edf2f7; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin: 0 auto 8px; color: #a0aec0; font-weight: 600;">
-                        <i class="fas fa-check"></i>
-                    </div>
-                    <span style="font-size: 13px; color: #718096;">Complete</span>
-                </div>
-            </div>
-        </div>
-
-        <form method="POST" id="registerForm">
-            {% csrf_token %}
-            
-            <fieldset class="form-group">
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="form-section">
-                            <h6 style="color: #4a5568; font-weight: 700; margin-bottom: 20px; font-size: 16px;">
-                                <i class="fas fa-user-circle mr-2" style="color: #667eea;"></i>Personal Information
-                            </h6>
-                            {{ form.username|as_crispy_field }}
-                            {{ form.email|as_crispy_field }}
-                            {{ form.role|as_crispy_field }}
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="form-section">
-                            <h6 style="color: #4a5568; font-weight: 700; margin-bottom: 20px; font-size: 16px;">
-                                <i class="fas fa-lock mr-2" style="color: #667eea;"></i>Security
-                            </h6>
-                            {{ form.password1|as_crispy_field }}
-                            {{ form.password2|as_crispy_field }}
-                        </div>
-                    </div>
-                </div>
-            </fieldset>
-
-            <!-- Password Strength Indicator -->
-            <div class="mt-4 mb-4" id="passwordStrength" style="display: none;">
-                <label style="font-weight: 600; color: #2d3748; font-size: 14px;">
-                    <i class="fas fa-shield-alt mr-2" style="color: #667eea;"></i>Password Strength
-                </label>
-                <div class="progress" style="height: 8px; border-radius: 10px; margin-bottom: 8px;">
-                    <div id="passwordStrengthBar" class="progress-bar" role="progressbar" style="width: 0%; border-radius: 10px; transition: all 0.3s ease;"></div>
-                </div>
-                <span id="passwordStrengthText" style="font-size: 13px; color: #718096;"></span>
-                <ul class="mt-3" style="list-style: none; padding: 0; margin: 0; font-size: 13px;">
-                    <li id="req-length" style="color: #a0aec0; margin-bottom: 5px;">
-                        <i class="fas fa-circle mr-2" style="font-size: 8px;"></i>At least 8 characters
-                    </li>
-                    <li id="req-uppercase" style="color: #a0aec0; margin-bottom: 5px;">
-                        <i class="fas fa-circle mr-2" style="font-size: 8px;"></i>One uppercase letter
-                    </li>
-                    <li id="req-number" style="color: #a0aec0; margin-bottom: 5px;">
-                        <i class="fas fa-circle mr-2" style="font-size: 8px;"></i>One number
-                    </li>
-                    <li id="req-special" style="color: #a0aec0; margin-bottom: 5px;">
-                        <i class="fas fa-circle mr-2" style="font-size: 8px;"></i>One special character
-                    </li>
-                </ul>
-            </div>
-
-            <!-- Terms and Conditions -->
-            <div class="mb-4 p-3" style="background: #f8fafc; border-radius: 16px;">
-                <div class="custom-control custom-checkbox">
-                    <input type="checkbox" class="custom-control-input" id="termsCheckbox" checked>
-                    <label class="custom-control-label" for="termsCheckbox" style="color: #4a5568; font-size: 14px;">
-                        I agree to the <a href="#" style="color: #667eea; font-weight: 600; text-decoration: none;">Terms of Service</a> and 
-                        <a href="#" style="color: #667eea; font-weight: 600; text-decoration: none;">Privacy Policy</a>
-                    </label>
-                </div>
-            </div>
-
-            <!-- Registration Button -->
-            <div class="form-group mb-4">
-                <button class="btn btn-primary btn-block py-3" type="submit" id="registerButton" style="border-radius: 16px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; font-weight: 700; font-size: 18px; letter-spacing: 0.5px; box-shadow: 0 10px 20px rgba(102,126,234,0.2); transition: all 0.3s ease;">
-                    <i class="fas fa-user-plus mr-2"></i>
-                    Create Account
-                    <i class="fas fa-arrow-right ml-2"></i>
-                </button>
-            </div>
-
-            <!-- Social Registration (Optional) -->
-            <div class="position-relative mb-4">
-                <div class="text-center">
-                    <span style="background: white; padding: 0 20px; color: #a0aec0; font-size: 14px;">or sign up with</span>
-                </div>
-                <hr style="border-top: 1px solid #e2e8f0; margin: -12px 0 20px;">
-            </div>
-
-            <div class="row">
-                <div class="col-md-6 mb-3 mb-md-0">
-                    <a href="{% url 'google_login' %}?next={% url 'prs-home' %}" class="btn btn-outline-secondary btn-block py-2" style="border-radius: 12px; border: 1px solid #e2e8f0; color: #4a5568; font-weight: 600; text-decoration: none; display: flex; align-items: center; justify-content: center;">
-                        <i class="fab fa-google mr-2" style="color: #ea4335;"></i>
-                        Google
-                    </a>
-                </div>
-                <div class="col-md-6">
-                    <button type="button" class="btn btn-outline-secondary btn-block py-2" style="border-radius: 12px; border: 1px solid #e2e8f0; color: #4a5568; font-weight: 600;" disabled>
-                        <i class="fab fa-github mr-2"></i>
-                        GitHub (Coming Soon)
-                    </button>
-                </div>
-            </div>
-        </form>
+    <!-- Steps -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px;">
+      <div style="text-align:center;padding:14px;background:var(--primary-light);border-radius:10px;border:1.5px solid var(--primary);">
+        <div style="width:32px;height:32px;background:var(--primary);border-radius:8px;display:flex;align-items:center;justify-content:center;margin:0 auto 8px;color:white;font-weight:700;">1</div>
+        <div style="font-size:12px;font-weight:700;color:var(--primary);">Account Info</div>
+      </div>
+      <div style="text-align:center;padding:14px;background:var(--page-bg);border-radius:10px;">
+        <div style="width:32px;height:32px;background:var(--card-border);border-radius:8px;display:flex;align-items:center;justify-content:center;margin:0 auto 8px;color:var(--text-muted);font-weight:700;">2</div>
+        <div style="font-size:12px;color:var(--text-muted);">Verification</div>
+      </div>
+      <div style="text-align:center;padding:14px;background:var(--page-bg);border-radius:10px;">
+        <div style="width:32px;height:32px;background:var(--card-border);border-radius:8px;display:flex;align-items:center;justify-content:center;margin:0 auto 8px;color:var(--text-muted);font-weight:700;">3</div>
+        <div style="font-size:12px;color:var(--text-muted);">Complete</div>
+      </div>
     </div>
 
-    <!-- Sign In Link -->
-    <div class="text-center">
-        <div style="background: #f8fafc; border-radius: 50px; padding: 18px 25px; display: inline-block;">
-            <p class="mb-0" style="color: #4a5568; font-size: 16px;">
-                <i class="fas fa-sign-in-alt mr-2" style="color: #667eea;"></i>
-                Already have an account? 
-                <a href="{% url 'login' %}" style="color: #667eea; font-weight: 700; text-decoration: none; margin-left: 5px;">
-                    Sign in here <i class="fas fa-arrow-right ml-1"></i>
-                </a>
-            </p>
+    <div class="form-section">
+      <form method="POST" id="registerForm">
+        {% csrf_token %}
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+          <div>
+            <div class="form-section-title" style="margin-bottom:16px;"><i class="fas fa-user-circle"></i> Personal Info</div>
+            {{ form.username|as_crispy_field }}
+            {{ form.email|as_crispy_field }}
+            {{ form.role|as_crispy_field }}
+          </div>
+          <div>
+            <div class="form-section-title" style="margin-bottom:16px;"><i class="fas fa-lock"></i> Security</div>
+            {{ form.password1|as_crispy_field }}
+            {{ form.password2|as_crispy_field }}
+          </div>
         </div>
+
+        <!-- Password Strength -->
+        <div id="passwordStrength" style="display:none;margin:16px 0;padding:16px;background:var(--page-bg);border-radius:10px;">
+          <div style="font-size:13px;font-weight:600;color:var(--text-secondary);margin-bottom:8px;">Password Strength</div>
+          <div class="progress" style="margin-bottom:8px;"><div id="passwordStrengthBar" class="progress-bar" style="width:0%;"></div></div>
+          <div id="passwordStrengthText" style="font-size:12px;color:var(--text-muted);"></div>
+        </div>
+
+        <div style="margin:20px 0;padding:14px;background:var(--page-bg);border-radius:10px;">
+          <div class="custom-control custom-checkbox">
+            <input type="checkbox" class="custom-control-input" id="termsCheckbox" checked>
+            <label class="custom-control-label" for="termsCheckbox" style="font-size:13px;color:var(--text-secondary);">
+              I agree to the <a href="#" style="color:var(--primary);font-weight:600;">Terms of Service</a> and <a href="#" style="color:var(--primary);font-weight:600;">Privacy Policy</a>
+            </label>
+          </div>
+        </div>
+
+        <button class="btn btn-primary btn-lg w-100" type="submit" id="registerButton">
+          <i class="fas fa-user-plus mr-2"></i>Create Account
+        </button>
+
+        <div style="text-align:center;margin:20px 0;position:relative;">
+          <span style="background:white;padding:0 16px;color:var(--text-muted);font-size:13px;position:relative;z-index:1;">or sign up with</span>
+          <div style="position:absolute;top:50%;left:0;right:0;height:1px;background:var(--card-border);z-index:0;"></div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <a href="{% url 'google_login' %}?next={% url 'prs-home' %}" class="btn btn-outline" style="justify-content:center;">
+            <i class="fab fa-google mr-2" style="color:#ea4335;"></i>Google
+          </a>
+          <button type="button" class="btn btn-outline" disabled style="justify-content:center;opacity:0.5;">
+            <i class="fab fa-github mr-2"></i>GitHub
+          </button>
+        </div>
+      </form>
     </div>
 
-    <!-- Benefits Section -->
-    <div class="row mt-5">
-        <div class="col-md-4 text-center mb-4 mb-md-0">
-            <div style="background: white; border-radius: 20px; padding: 25px 15px; height: 100%; box-shadow: 0 10px 20px rgba(0,0,0,0.02);">
-                <div style="width: 60px; height: 60px; background: rgba(102,126,234,0.1); border-radius: 15px; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px;">
-                    <i class="fas fa-bolt" style="color: #667eea; font-size: 24px;"></i>
-                </div>
-                <h6 style="color: #2d3748; font-weight: 700; margin-bottom: 10px;">Fast Processing</h6>
-                <p style="color: #718096; font-size: 13px; margin: 0;">Submit and track purchase requests in minutes</p>
-            </div>
-        </div>
-        <div class="col-md-4 text-center mb-4 mb-md-0">
-            <div style="background: white; border-radius: 20px; padding: 25px 15px; height: 100%; box-shadow: 0 10px 20px rgba(0,0,0,0.02);">
-                <div style="width: 60px; height: 60px; background: rgba(72,187,120,0.1); border-radius: 15px; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px;">
-                    <i class="fas fa-shield-alt" style="color: #48bb78; font-size: 24px;"></i>
-                </div>
-                <h6 style="color: #2d3748; font-weight: 700; margin-bottom: 10px;">Secure Platform</h6>
-                <p style="color: #718096; font-size: 13px; margin: 0;">Your data is encrypted and protected</p>
-            </div>
-        </div>
-        <div class="col-md-4 text-center">
-            <div style="background: white; border-radius: 20px; padding: 25px 15px; height: 100%; box-shadow: 0 10px 20px rgba(0,0,0,0.02);">
-                <div style="width: 60px; height: 60px; background: rgba(237,137,54,0.1); border-radius: 15px; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px;">
-                    <i class="fas fa-clock" style="color: #ed8936; font-size: 24px;"></i>
-                </div>
-                <h6 style="color: #2d3748; font-weight: 700; margin-bottom: 10px;">24/7 Access</h6>
-                <p style="color: #718096; font-size: 13px; margin: 0;">Access your account anytime, anywhere</p>
-            </div>
-        </div>
+    <div style="text-align:center;margin-top:20px;">
+      <p style="color:var(--text-muted);font-size:13.5px;">
+        Already have an account?
+        <a href="{% url 'login' %}" style="color:var(--primary);font-weight:600;text-decoration:none;margin-left:4px;">Sign in here <i class="fas fa-arrow-right ml-1"></i></a>
+      </p>
     </div>
+  </div>
 </div>
 
-<!-- Custom CSS -->
 <style>
-    /* Form section styling */
-    .form-section {
-        background: #f8fafc;
-        border-radius: 20px;
-        padding: 25px;
-        height: 100%;
-        transition: all 0.3s ease;
-    }
-    
-    .form-section:hover {
-        background: white;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.03);
-    }
-    
-    /* Form field styling */
-    .form-group {
-        margin-bottom: 1.5rem;
-    }
-    
-    label {
-        font-weight: 600;
-        color: #2d3748;
-        margin-bottom: 8px;
-        font-size: 0.95rem;
-    }
-    
-    .form-control {
-        border-radius: 14px;
-        border: 1px solid #e2e8f0;
-        padding: 14px 18px;
-        height: auto;
-        font-size: 15px;
-        transition: all 0.3s ease;
-        background: white;
-    }
-    
-    .form-control:focus {
-        border-color: #667eea;
-        box-shadow: 0 0 0 4px rgba(102,126,234,0.1);
-        background: white;
-    }
-    
-    /* Custom checkbox styling */
-    .custom-control-input:checked ~ .custom-control-label::before {
-        border-color: #667eea;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    }
-    
-    .custom-control-label::before {
-        border-radius: 6px;
-        border: 2px solid #e2e8f0;
-    }
-    
-    /* Animation */
-    @keyframes float {
-        0%, 100% { transform: translateY(0); }
-        50% { transform: translateY(-10px); }
-    }
-    
-    /* Responsive adjustments */
-    @media (max-width: 768px) {
-        .content-card {
-            padding: 20px !important;
-        }
-        
-        .form-section {
-            padding: 20px;
-            margin-bottom: 20px;
-        }
-        
-        .btn {
-            width: 100%;
-        }
-        
-        .d-flex.justify-content-between {
-            flex-direction: column;
-            gap: 15px;
-        }
-    }
-    
-    /* Password strength colors */
-    .strength-weak { background: #f56565 !important; }
-    .strength-fair { background: #ed8936 !important; }
-    .strength-good { background: #48bb78 !important; }
-    .strength-strong { background: #38a169 !important; }
-    
-    /* Requirement check styles */
-    .req-met {
-        color: #48bb78 !important;
-    }
-    
-    .req-met i {
-        color: #48bb78 !important;
-    }
-    
-    /* Input validation styles */
-    .is-valid {
-        border-color: #48bb78 !important;
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2348bb78' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'%3E%3C/polyline%3E%3C/svg%3E");
-        background-repeat: no-repeat;
-        background-position: right 16px center;
-        padding-right: 45px;
-    }
-    
-    .is-invalid {
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23f56565' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'%3E%3C/circle%3E%3Cline x1='12' y1='8' x2='12' y2='12'%3E%3C/line%3E%3Cline x1='12' y1='16' x2='12.01' y2='16'%3E%3C/line%3E%3C/svg%3E");
-        background-repeat: no-repeat;
-        background-position: right 16px center;
-        padding-right: 45px;
-    }
+  fieldset .form-control { border-radius:8px; border:1.5px solid var(--card-border); padding:10px 14px; }
+  fieldset .form-control:focus { border-color:var(--primary); box-shadow:0 0 0 3px rgba(37,99,235,0.1); }
+  fieldset label { font-weight:600; color:var(--text-secondary); font-size:13px; }
 </style>
 
-<!-- JavaScript for enhanced registration experience -->
 <script>
-    $(document).ready(function() {
-        // Enable/disable register button based on terms checkbox
-        $('#termsCheckbox').change(function() {
-            $('#registerButton').prop('disabled', !this.checked);
-        });
-        
-        // Password strength checker
-        $('#id_password1').on('keyup', function() {
-            var password = $(this).val();
-            $('#passwordStrength').show();
-            
-            var strength = 0;
-            var requirements = {
-                length: password.length >= 8,
-                uppercase: /[A-Z]/.test(password),
-                number: /[0-9]/.test(password),
-                special: /[!@#$%^&*(),.?":{}|<>]/.test(password)
-            };
-            
-            // Update requirement indicators
-            $('#req-length').toggleClass('req-met', requirements.length);
-            $('#req-uppercase').toggleClass('req-met', requirements.uppercase);
-            $('#req-number').toggleClass('req-met', requirements.number);
-            $('#req-special').toggleClass('req-met', requirements.special);
-            
-            // Calculate strength
-            if (requirements.length) strength += 25;
-            if (requirements.uppercase) strength += 25;
-            if (requirements.number) strength += 25;
-            if (requirements.special) strength += 25;
-            
-            // Update progress bar
-            $('#passwordStrengthBar').css('width', strength + '%');
-            
-            // Set strength text and color
-            var strengthText = '';
-            var strengthClass = '';
-            
-            if (strength < 25) {
-                strengthText = 'Very Weak';
-                strengthClass = 'strength-weak';
-            } else if (strength < 50) {
-                strengthText = 'Weak';
-                strengthClass = 'strength-weak';
-            } else if (strength < 75) {
-                strengthText = 'Fair';
-                strengthClass = 'strength-fair';
-            } else if (strength < 100) {
-                strengthText = 'Good';
-                strengthClass = 'strength-good';
-            } else {
-                strengthText = 'Strong';
-                strengthClass = 'strength-strong';
-            }
-            
-            $('#passwordStrengthBar').removeClass('strength-weak strength-fair strength-good strength-strong')
-                                    .addClass(strengthClass);
-            $('#passwordStrengthText').text('Password strength: ' + strengthText);
-        });
-        
-        // Real-time password match validation
-        function checkPasswordMatch() {
-            var password = $('#id_password1').val();
-            var confirmPassword = $('#id_password2').val();
-            
-            if (confirmPassword.length > 0) {
-                if (password === confirmPassword) {
-                    $('#id_password2').removeClass('is-invalid').addClass('is-valid');
-                    $('#id_password2').next('.invalid-feedback').hide();
-                } else {
-                    $('#id_password2').removeClass('is-valid').addClass('is-invalid');
-                    $('#id_password2').next('.invalid-feedback').show();
-                }
-            }
-        }
-        
-        $('#id_password1, #id_password2').on('keyup', checkPasswordMatch);
-        
-        // Email format validation
-        $('#id_email').on('keyup', function() {
-            var email = $(this).val();
-            var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            
-            if (email.length > 0) {
-                if (emailRegex.test(email)) {
-                    $(this).removeClass('is-invalid').addClass('is-valid');
-                } else {
-                    $(this).removeClass('is-valid').addClass('is-invalid');
-                }
-            }
-        });
-        
-        // Username availability check (simulated)
-        var usernameTimer;
-        $('#id_username').on('keyup', function() {
-            clearTimeout(usernameTimer);
-            var username = $(this).val();
-            
-            if (username.length >= 3) {
-                usernameTimer = setTimeout(function() {
-                    // Simulate AJAX check
-                    if (username.toLowerCase() === 'admin' || username.toLowerCase() === 'user') {
-                        $('#id_username').removeClass('is-valid').addClass('is-invalid');
-                        if (!$('#username-feedback').length) {
-                            $('#id_username').after('<div id="username-feedback" class="invalid-feedback">Username already taken</div>');
-                        }
-                    } else {
-                        $('#id_username').removeClass('is-invalid').addClass('is-valid');
-                        $('#username-feedback').remove();
-                    }
-                }, 500);
-            }
-        });
-        
-        // Form submission validation
-        $('#registerForm').on('submit', function(e) {
-            if (!$('#termsCheckbox').is(':checked')) {
-                e.preventDefault();
-                alert('Please accept the Terms of Service and Privacy Policy');
-            }
-            
-            var password = $('#id_password1').val();
-            var confirmPassword = $('#id_password2').val();
-            
-            if (password !== confirmPassword) {
-                e.preventDefault();
-                alert('Passwords do not match!');
-            }
-        });
-        
-        // Animate form sections
-        $('.form-section').hover(
-            function() {
-                $(this).find('h6 i').addClass('fa-bounce');
-            },
-            function() {
-                $(this).find('h6 i').removeClass('fa-bounce');
-            }
-        );
-    });
+$(document).ready(function() {
+  $('#termsCheckbox').change(function() { $('#registerButton').prop('disabled', !this.checked); });
+
+  $('#id_password1').on('keyup', function() {
+    var p = $(this).val();
+    $('#passwordStrength').show();
+    var s = 0;
+    if (p.length >= 8) s += 25;
+    if (/[A-Z]/.test(p)) s += 25;
+    if (/[0-9]/.test(p)) s += 25;
+    if (/[!@#$%^&*]/.test(p)) s += 25;
+    $('#passwordStrengthBar').css('width', s + '%')
+      .css('background', s < 50 ? 'var(--danger)' : s < 75 ? 'var(--warning)' : 'var(--success)');
+    $('#passwordStrengthText').text(s < 25 ? 'Very Weak' : s < 50 ? 'Weak' : s < 75 ? 'Fair' : s < 100 ? 'Good' : 'Strong');
+  });
+});
 </script>
 
-<!-- Add Font Awesome animation support -->
-<style>
-    .fa-bounce {
-        animation: fa-bounce 0.5s ease;
-    }
-    
-    @keyframes fa-bounce {
-        0%, 100% { transform: scale(1); }
-        50% { transform: scale(1.2); }
-    }
-    
-    /* Smooth transitions */
-    .btn, .form-control, .form-section {
-        transition: all 0.3s ease;
-    }
-    
-    /* Custom scrollbar */
-    ::-webkit-scrollbar {
-        width: 8px;
-    }
-    
-    ::-webkit-scrollbar-track {
-        background: #f1f1f1;
-        border-radius: 10px;
-    }
-    
-    ::-webkit-scrollbar-thumb {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border-radius: 10px;
-    }
-    
-    ::-webkit-scrollbar-thumb:hover {
-        background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
-    }
-</style>
-
-{% endblock content %}
+{% endblock %}

@@ -1,20 +1,37 @@
 {% extends "prs/layout.html" %}
+{% block page_title %}Categories{% endblock %}
 {% block content %}
 
-    {% if user.username %}
-    <legend class="mb-3">Categories</legend>
-      <article class="media content-section">
-        <div class="media-body">
-          <ul class="list-group list-group-flush navbar-nav">
-            <li class="list-group-item nav-item"><a class='nav-link' href="">Construction</a></li>
-            <li class="list-group-item nav-item"><a class='nav-link' href="">Consulting</a></li>
-            <li class="list-group-item nav-item"><a class='nav-link' href="">Facility Management</a></li>
-            <li class="list-group-item nav-item"><a class='nav-link' href="">General Goods and Sevices</a></li>
-            <li class="list-group-item nav-item"><a class='nav-link' href="">Information Technlogy</a></li>
-            <li class="list-group-item nav-item"><a class='nav-link' href="">Office Supplies</a></li>
-          </ul>
-        </div>
-      </article>
-    {% endif %}
+<div class="page-header">
+  <div class="page-header-left">
+    <h1><i class="fas fa-tags mr-2" style="color:var(--primary)"></i>Categories</h1>
+    <p>Browse purchase request categories</p>
+  </div>
+</div>
 
-{% endblock content %}
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;">
+  {% for cat in categories %}
+  <div class="stat-card" style="cursor:pointer;">
+    <div class="stat-card-top">
+      <div class="stat-card-icon blue"><i class="fas fa-tag"></i></div>
+    </div>
+    <div class="stat-card-value" style="font-size:16px;font-weight:700;">{{ cat }}</div>
+    <div class="stat-card-label">Category</div>
+  </div>
+  {% empty %}
+  <!-- Default categories if none from context -->
+  {% for cat in "Construction,Consulting,Facility Management,General Goods and Services,Information Technology,Office Supplies"|split:"," %}
+  <div class="stat-card">
+    <div class="stat-card-top">
+      <div class="stat-card-icon {% cycle 'blue' 'green' 'orange' 'red' 'blue' 'green' %}">
+        <i class="fas {% cycle 'fa-hard-hat' 'fa-comments' 'fa-building' 'fa-box' 'fa-laptop' 'fa-paperclip' %}"></i>
+      </div>
+    </div>
+    <div class="stat-card-value" style="font-size:15px;font-weight:700;">{{ cat }}</div>
+    <div class="stat-card-label">Category</div>
+  </div>
+  {% endfor %}
+  {% endfor %}
+</div>
+
+{% endblock %}

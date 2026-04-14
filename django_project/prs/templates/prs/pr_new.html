@@ -1,302 +1,332 @@
 {% extends "prs/layout.html" %}
 {% load crispy_forms_tags %}
+{% block page_title %}New Purchase Request{% endblock %}
 {% block content %}
 
-<div class="content-card">
-    <!-- Header Section with Icon -->
-    <div class="d-flex align-items-center mb-4">
-        <div class="mr-3">
-            <div style="width: 50px; height: 50px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 15px; display: flex; align-items: center; justify-content: center;">
-                <i class="fas fa-file-alt text-white" style="font-size: 24px;"></i>
-            </div>
-        </div>
-        <div>
-            <h2 class="mb-1" style="color: #2d3748; font-weight: 700;">Create New Purchase Request</h2>
-            <p class="text-muted mb-0">Fill in the details below to submit a new purchase request</p>
-        </div>
-    </div>
-
-    <!-- Progress Indicator -->
-    <div class="mb-4">
-        <div class="d-flex justify-content-between mb-2">
-            <span class="badge badge-primary px-3 py-2" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-                <i class="fas fa-edit mr-1"></i> Step 1: Request Details
-            </span>
-            <span class="text-muted">Complete all required fields</span>
-        </div>
-        <div class="progress" style="height: 8px; border-radius: 10px;">
-            <div class="progress-bar" role="progressbar" style="width: 33%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 10px;" aria-valuenow="33" aria-valuemin="0" aria-valuemax="100"></div>
-        </div>
-    </div>
-
-    <!-- Form Container -->
-    <div class="form-container" style="background: white; border-radius: 20px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.03);">
-        <form method="POST" id="purchaseRequestForm">
-            {% csrf_token %}
-            
-            <!-- Render form with crispy -->
-            <fieldset class="form-group">
-                {{ form|crispy }}
-            </fieldset>
-
-            <!-- Action Buttons -->
-            <div class="form-group mt-5 mb-0">
-                <div class="d-flex align-items-center justify-content-between">
-                    <div>
-                        <a href="{% url 'prs-home' %}" class="btn btn-light px-4 py-2" style="border-radius: 12px; border: 1px solid #e2e8f0; color: #4a5568; font-weight: 600;">
-                            <i class="fas fa-times mr-2"></i>Cancel
-                        </a>
-                    </div>
-                    <div>
-                        <button class="btn btn-primary px-5 py-2" type="submit" style="border-radius: 12px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; font-weight: 600; box-shadow: 0 10px 20px rgba(102,126,234,0.2);">
-                            <i class="fas fa-check-circle mr-2"></i>Create Purchase Request
-                            <i class="fas fa-arrow-right ml-2"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </form>
-    </div>
-
-    <!-- Help Section -->
-    <div class="mt-4 p-4" style="background: #f8fafc; border-radius: 16px; border-left: 4px solid #667eea;">
-        <div class="d-flex align-items-start">
-            <div class="mr-3">
-                <i class="fas fa-lightbulb" style="color: #667eea; font-size: 20px;"></i>
-            </div>
-            <div>
-                <h6 style="color: #2d3748; font-weight: 600; margin-bottom: 5px;">Need Help?</h6>
-                <p class="text-muted mb-0" style="font-size: 14px;">
-                    Make sure all required fields are filled. You can save the request as draft if you need to complete it later. 
-                    Contact your manager if you need approval assistance.
-                </p>
-            </div>
-        </div>
-    </div>
+<!-- Step Indicator -->
+<div class="ec-wizard">
+  <div class="ec-step active" id="step-ind-1">
+    <div class="ec-step-num">1</div>
+    <div class="ec-step-label">Category</div>
+  </div>
+  <div class="ec-step-line"></div>
+  <div class="ec-step" id="step-ind-2">
+    <div class="ec-step-num">2</div>
+    <div class="ec-step-label">Item Type</div>
+  </div>
+  <div class="ec-step-line"></div>
+  <div class="ec-step" id="step-ind-3">
+    <div class="ec-step-num">3</div>
+    <div class="ec-step-label">Details</div>
+  </div>
 </div>
 
-<!-- Custom CSS for Form Styling -->
+<!-- STEP 1: Category Selection -->
+<div class="ec-panel" id="panel-1">
+  <div class="ec-panel-header">
+    <h2 class="ec-panel-title"><i class="fas fa-th-large"></i> Select a Category</h2>
+    <p class="ec-panel-sub">What type of purchase are you requesting?</p>
+  </div>
+  <div class="ec-category-grid" id="categoryGrid"></div>
+</div>
+
+<!-- STEP 2: Item Type Selection -->
+<div class="ec-panel" id="panel-2" style="display:none;">
+  <div class="ec-panel-header" style="display:flex;align-items:center;justify-content:space-between;">
+    <div>
+      <h2 class="ec-panel-title"><i class="fas fa-list-ul"></i> Select Item Type</h2>
+      <p class="ec-panel-sub">Choose the specific item within <strong id="selectedCatLabel"></strong></p>
+    </div>
+    <button class="btn btn-outline btn-sm" onclick="goToStep(1)"><i class="fas fa-arrow-left"></i> Back</button>
+  </div>
+  <div class="ec-item-grid" id="itemGrid"></div>
+</div>
+
+<!-- STEP 3: PR Details Form -->
+<div class="ec-panel" id="panel-3" style="display:none;">
+  <div class="ec-panel-header" style="display:flex;align-items:center;justify-content:space-between;">
+    <div>
+      <h2 class="ec-panel-title"><i class="fas fa-file-alt"></i> Request Details</h2>
+      <p class="ec-panel-sub">Fill in the details for your purchase request</p>
+    </div>
+    <button class="btn btn-outline btn-sm" onclick="goToStep(2)"><i class="fas fa-arrow-left"></i> Back</button>
+  </div>
+
+  <!-- Selection Summary Badge -->
+  <div class="ec-selection-badge" id="selectionBadge"></div>
+
+  <form method="POST" id="purchaseRequestForm">
+    {% csrf_token %}
+    <!-- Hidden fields for category and item_type -->
+    <input type="hidden" name="category" id="hiddenCategory">
+    <input type="hidden" name="item_type" id="hiddenItemType">
+
+    <div class="ec-form-grid">
+      <div class="ec-form-group">
+        <label for="id_pr_number">PR Number <span class="req">*</span></label>
+        {{ form.pr_number }}
+        {% if form.pr_number.errors %}<div class="ec-error">{{ form.pr_number.errors.0 }}</div>{% endif %}
+      </div>
+      <div class="ec-form-group">
+        <label for="id_quantity">Quantity <span class="req">*</span></label>
+        {{ form.quantity }}
+        {% if form.quantity.errors %}<div class="ec-error">{{ form.quantity.errors.0 }}</div>{% endif %}
+      </div>
+      <div class="ec-form-group ec-full">
+        <label for="id_items_description">Items Description <span class="req">*</span></label>
+        {{ form.items_description }}
+        {% if form.items_description.errors %}<div class="ec-error">{{ form.items_description.errors.0 }}</div>{% endif %}
+      </div>
+      <div class="ec-form-group ec-full">
+        <label for="id_specifications">Specifications</label>
+        {{ form.specifications }}
+      </div>
+      <div class="ec-form-group ec-full">
+        <label for="id_description">Additional Notes</label>
+        {{ form.description }}
+      </div>
+    </div>
+
+    <div class="ec-form-actions">
+      <a href="{% url 'prs-home' %}" class="btn btn-outline"><i class="fas fa-times"></i> Cancel</a>
+      <button type="submit" class="btn btn-primary btn-lg"><i class="fas fa-paper-plane"></i> Submit Request</button>
+    </div>
+  </form>
+</div>
+
+<!-- Re-render errors: if form has errors, jump to step 3 -->
+{% if form.errors %}
+<script>window.__formHasErrors = true;</script>
+{% endif %}
+
 <style>
-    /* Custom form field styling */
-    .form-container .form-group {
-        margin-bottom: 1.8rem;
-    }
-    
-    .form-container label {
-        font-weight: 600;
-        color: #2d3748;
-        margin-bottom: 8px;
-        font-size: 0.95rem;
-    }
-    
-    .form-container .form-control {
-        border-radius: 12px;
-        border: 1px solid #e2e8f0;
-        padding: 12px 16px;
-        height: auto;
-        transition: all 0.3s ease;
-    }
-    
-    .form-container .form-control:focus {
-        border-color: #667eea;
-        box-shadow: 0 0 0 3px rgba(102,126,234,0.1);
-    }
-    
-    /* Crispy Forms specific styling */
-    .form-container .asteriskField {
-        color: #e53e3e;
-        margin-left: 4px;
-    }
-    
-    .form-container .alert {
-        border-radius: 12px;
-        border: none;
-        background: #fff5f5;
-        color: #c53030;
-        padding: 12px 16px;
-        font-size: 14px;
-    }
-    
-    /* Select field styling */
-    .form-container select.form-control {
-        appearance: none;
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23667eea' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-        background-repeat: no-repeat;
-        background-position: right 16px center;
-        padding-right: 40px;
-    }
-    
-    /* Textarea styling */
-    .form-container textarea.form-control {
-        min-height: 120px;
-        resize: vertical;
-    }
-    
-    /* Checkbox and radio styling */
-    .form-container .form-check {
-        padding-left: 2rem;
-    }
-    
-    .form-container .form-check-input {
-        width: 1.2rem;
-        height: 1.2rem;
-        margin-left: -2rem;
-    }
-    
-    /* Help text styling */
-    .form-container .form-text {
-        font-size: 12px;
-        color: #718096;
-        margin-top: 6px;
-    }
-    
-    /* Invalid field styling */
-    .form-container .is-invalid {
-        border-color: #fc8181;
-    }
-    
-    .form-container .invalid-feedback {
-        color: #e53e3e;
-        font-size: 13px;
-        margin-top: 6px;
-    }
-    
-    /* Button hover effects */
-    .btn-primary:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 15px 30px rgba(102,126,234,0.3) !important;
-    }
-    
-    .btn-light:hover {
-        background: #f7fafc !important;
-        transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-    }
-    
-    /* Animation for form appearance */
-    .content-card {
-        animation: slideUp 0.5s ease;
-    }
-    
-    @keyframes slideUp {
-        from {
-            opacity: 0;
-            transform: translateY(20px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-    
-    /* Responsive adjustments */
-    @media (max-width: 768px) {
-        .form-container {
-            padding: 20px !important;
-        }
-        
-        .d-flex.justify-content-between {
-            flex-direction: column;
-            gap: 15px;
-        }
-        
-        .btn {
-            width: 100%;
-        }
-    }
+/* ===== E-Commerce Wizard ===== */
+.ec-wizard {
+  display: flex; align-items: center; justify-content: center;
+  gap: 0; margin-bottom: 32px; padding: 24px 0 8px;
+}
+.ec-step { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.ec-step-num {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: var(--card-border); color: var(--text-muted);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 14px; transition: all .3s;
+}
+.ec-step.active .ec-step-num { background: var(--primary); color: #fff; box-shadow: 0 0 0 4px rgba(37,99,235,.15); }
+.ec-step.done .ec-step-num { background: var(--success); color: #fff; }
+.ec-step-label { font-size: 12px; font-weight: 600; color: var(--text-muted); }
+.ec-step.active .ec-step-label { color: var(--primary); }
+.ec-step.done .ec-step-label { color: var(--success); }
+.ec-step-line { flex: 1; height: 2px; background: var(--card-border); min-width: 60px; margin: 0 8px; margin-bottom: 22px; }
+
+/* ===== Panel ===== */
+.ec-panel { max-width: 900px; margin: 0 auto; animation: fadeSlide .3s ease; }
+@keyframes fadeSlide { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+.ec-panel-header { margin-bottom: 24px; }
+.ec-panel-title { font-size: 20px; font-weight: 700; color: var(--text-primary); margin: 0 0 4px; }
+.ec-panel-sub { font-size: 13px; color: var(--text-muted); margin: 0; }
+
+/* ===== Category Grid ===== */
+.ec-category-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px;
+}
+.ec-cat-card {
+  background: var(--card-bg); border: 2px solid var(--card-border);
+  border-radius: 14px; padding: 28px 20px; text-align: center;
+  cursor: pointer; transition: all .2s; position: relative; overflow: hidden;
+}
+.ec-cat-card:hover { border-color: var(--primary); transform: translateY(-3px); box-shadow: 0 8px 24px rgba(37,99,235,.12); }
+.ec-cat-card:hover .ec-cat-icon { background: var(--primary); color: #fff; }
+.ec-cat-icon {
+  width: 56px; height: 56px; border-radius: 14px;
+  background: var(--sidebar-hover); color: var(--primary);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px; margin: 0 auto 14px; transition: all .2s;
+}
+.ec-cat-name { font-size: 14px; font-weight: 700; color: var(--text-primary); margin-bottom: 4px; }
+.ec-cat-count { font-size: 11px; color: var(--text-muted); }
+
+/* ===== Item Grid ===== */
+.ec-item-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 12px;
+}
+.ec-item-card {
+  background: var(--card-bg); border: 2px solid var(--card-border);
+  border-radius: 10px; padding: 18px 14px; text-align: center;
+  cursor: pointer; transition: all .2s;
+}
+.ec-item-card:hover { border-color: var(--primary); background: var(--info-light); transform: translateY(-2px); }
+.ec-item-card.selected { border-color: var(--primary); background: var(--info-light); }
+.ec-item-icon { font-size: 20px; color: var(--primary); margin-bottom: 8px; }
+.ec-item-name { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+
+/* ===== Selection Badge ===== */
+.ec-selection-badge {
+  display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 24px;
+}
+.ec-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--primary); color: #fff;
+  border-radius: 20px; padding: 5px 14px; font-size: 12px; font-weight: 600;
+}
+.ec-badge i { font-size: 11px; }
+
+/* ===== Form ===== */
+.ec-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.ec-form-group { display: flex; flex-direction: column; gap: 6px; }
+.ec-form-group.ec-full { grid-column: 1 / -1; }
+.ec-form-group label { font-size: 13px; font-weight: 600; color: var(--text-secondary); }
+.ec-form-group .req { color: var(--danger); }
+.ec-form-group input, .ec-form-group textarea, .ec-form-group select {
+  border-radius: 8px; border: 1.5px solid var(--card-border);
+  padding: 10px 14px; font-size: 13.5px; background: var(--card-bg);
+  color: var(--text-primary); transition: border-color .2s;
+  width: 100%;
+}
+.ec-form-group input:focus, .ec-form-group textarea:focus {
+  border-color: var(--primary); outline: none;
+  box-shadow: 0 0 0 3px rgba(37,99,235,.1);
+}
+.ec-form-group textarea { min-height: 90px; resize: vertical; }
+.ec-error { font-size: 12px; color: var(--danger); }
+.ec-form-actions {
+  display: flex; justify-content: space-between; align-items: center;
+  padding-top: 20px; border-top: 1px solid var(--card-border); margin-top: 8px;
+}
+.btn-lg { padding: 12px 28px; font-size: 15px; }
 </style>
 
-<!-- JavaScript for enhanced form experience -->
 <script>
-    $(document).ready(function() {
-        // Dynamic Item Type Dropdown based on Category
-        const categoryField = $('#id_category');
-        const itemTypeField = $('#id_item_type');
-        
-        // Store original item type value
-        const originalItemType = itemTypeField.val();
-        
-        // Function to update item types
-        function updateItemTypes() {
-            const selectedCategory = categoryField.val();
-            
-            if (!selectedCategory) {
-                itemTypeField.html('<option value="">---------</option>');
-                return;
-            }
-            
-            // Fetch item types via AJAX
-            $.ajax({
-                url: '{% url "get-item-types" %}',
-                data: {
-                    'category': selectedCategory
-                },
-                dataType: 'json',
-                success: function(data) {
-                    // Clear current options
-                    itemTypeField.html('<option value="">Select Item Type</option>');
-                    
-                    // Add new options
-                    $.each(data.item_types, function(index, item) {
-                        itemTypeField.append(
-                            $('<option></option>').attr('value', item.value).text(item.label)
-                        );
-                    });
-                    
-                    // Restore original value if it exists in new options
-                    if (originalItemType) {
-                        itemTypeField.val(originalItemType);
-                    }
-                },
-                error: function() {
-                    console.error('Error fetching item types');
-                }
-            });
-        }
-        
-        // Update item types when category changes
-        categoryField.on('change', updateItemTypes);
-        
-        // Initialize on page load if category is already selected
-        if (categoryField.val()) {
-            updateItemTypes();
-        }
-        
-        // Add character counter for textareas
-        $('textarea.form-control').each(function() {
-            let textarea = $(this);
-            let maxLength = textarea.attr('maxlength') || 1000;
-            
-            textarea.after('<small class="text-muted char-counter" style="float: right; margin-top: 5px;">0/' + maxLength + ' characters</small>');
-            
-            textarea.on('keyup', function() {
-                let currentLength = $(this).val().length;
-                $(this).next('.char-counter').text(currentLength + '/' + maxLength + ' characters');
-                
-                // Change color when approaching limit
-                if (currentLength > maxLength * 0.9) {
-                    $(this).next('.char-counter').css('color', '#e53e3e');
-                } else {
-                    $(this).next('.char-counter').css('color', '#718096');
-                }
-            });
-        });
-        
-        // Confirm before cancel
-        $('.btn-light').on('click', function(e) {
-            e.preventDefault();
-            if (confirm('Are you sure you want to cancel? Any unsaved changes will be lost.')) {
-                window.location.href = $(this).attr('href');
-            }
-        });
-        
-        // Animate form fields on focus
-        $('.form-control').on('focus', function() {
-            $(this).closest('.form-group').addClass('focused');
-        }).on('blur', function() {
-            $(this).closest('.form-group').removeClass('focused');
-        });
-    });
-</script>
+const CATEGORIES = [
+  { value: 'Construction',              label: 'Construction',              icon: 'fa-hard-hat',       color: '#F59E0B' },
+  { value: 'Consulting',                label: 'Consulting',                icon: 'fa-briefcase',      color: '#8B5CF6' },
+  { value: 'Facility Management',       label: 'Facility Management',       icon: 'fa-building',       color: '#10B981' },
+  { value: 'General Goods and Services',label: 'General Goods & Services',  icon: 'fa-boxes',          color: '#3B82F6' },
+  { value: 'Information Technology',    label: 'Information Technology',    icon: 'fa-laptop-code',    color: '#06B6D4' },
+  { value: 'Office Supplies',           label: 'Office Supplies',           icon: 'fa-pencil-ruler',   color: '#EC4899' },
+];
 
-{% endblock content %}
+const ITEMS = {
+  'Construction': ['Building Materials','Cement & Concrete','Steel & Metal','Wood & Timber','Electrical Materials','Plumbing Materials','Paint & Coating','Tiles & Flooring','Doors & Windows','Roofing Materials','Construction Equipment','Safety Equipment','Other Construction'],
+  'Consulting': ['Business Consulting','IT Consulting','Financial Consulting','Legal Consulting','HR Consulting','Marketing Consulting','Management Consulting','Strategy Consulting','Technical Consulting','Training & Development','Other Consulting'],
+  'Facility Management': ['Cleaning Services','Security Services','Maintenance Services','HVAC Services','Landscaping','Pest Control','Waste Management','Catering Services','Reception Services','Parking Management','Building Management','Other Facility Services'],
+  'General Goods and Services': ['Office Furniture','Stationery','Printing Services','Courier Services','Transportation','Catering','Uniforms','Promotional Items','Packaging Materials','General Supplies','Other Goods'],
+  'Information Technology': ['Computer Hardware','Computer Software','Networking Equipment','Servers & Storage','Printers & Scanners','Mobile Devices','IT Services','Cloud Services','Software Licenses','IT Security','Website Development','Database Services','Other IT'],
+  'Office Supplies': ['Paper Products','Writing Instruments','Filing & Storage','Desk Accessories','Binding & Laminating','Presentation Supplies','Mailing Supplies','Cleaning Supplies','Breakroom Supplies','Office Electronics','Other Office Supplies'],
+};
+
+const ITEM_ICONS = {
+  'Building Materials':'fa-layer-group','Cement & Concrete':'fa-circle','Steel & Metal':'fa-tools',
+  'Wood & Timber':'fa-tree','Electrical Materials':'fa-bolt','Plumbing Materials':'fa-faucet',
+  'Paint & Coating':'fa-paint-roller','Tiles & Flooring':'fa-th','Doors & Windows':'fa-door-open',
+  'Roofing Materials':'fa-home','Construction Equipment':'fa-truck','Safety Equipment':'fa-shield-alt',
+  'Business Consulting':'fa-chart-line','IT Consulting':'fa-laptop','Financial Consulting':'fa-coins',
+  'Legal Consulting':'fa-balance-scale','HR Consulting':'fa-users','Marketing Consulting':'fa-bullhorn',
+  'Management Consulting':'fa-sitemap','Strategy Consulting':'fa-chess','Technical Consulting':'fa-cogs',
+  'Training & Development':'fa-graduation-cap','Cleaning Services':'fa-broom','Security Services':'fa-shield-alt',
+  'Maintenance Services':'fa-wrench','HVAC Services':'fa-wind','Landscaping':'fa-leaf',
+  'Pest Control':'fa-bug','Waste Management':'fa-trash','Catering Services':'fa-utensils',
+  'Reception Services':'fa-concierge-bell','Parking Management':'fa-parking','Building Management':'fa-building',
+  'Office Furniture':'fa-chair','Stationery':'fa-pen','Printing Services':'fa-print',
+  'Courier Services':'fa-shipping-fast','Transportation':'fa-truck','Catering':'fa-utensils',
+  'Uniforms':'fa-tshirt','Promotional Items':'fa-gift','Packaging Materials':'fa-box',
+  'General Supplies':'fa-boxes','Computer Hardware':'fa-desktop','Computer Software':'fa-code',
+  'Networking Equipment':'fa-network-wired','Servers & Storage':'fa-server','Printers & Scanners':'fa-print',
+  'Mobile Devices':'fa-mobile-alt','IT Services':'fa-headset','Cloud Services':'fa-cloud',
+  'Software Licenses':'fa-key','IT Security':'fa-lock','Website Development':'fa-globe',
+  'Database Services':'fa-database','Paper Products':'fa-file','Writing Instruments':'fa-pen-nib',
+  'Filing & Storage':'fa-folder','Desk Accessories':'fa-paperclip','Binding & Laminating':'fa-book',
+  'Presentation Supplies':'fa-chalkboard','Mailing Supplies':'fa-envelope','Cleaning Supplies':'fa-soap',
+  'Breakroom Supplies':'fa-coffee','Office Electronics':'fa-plug',
+};
+
+let selectedCategory = null;
+let selectedItemType = null;
+
+function goToStep(n) {
+  [1,2,3].forEach(i => {
+    document.getElementById('panel-' + i).style.display = (i === n) ? '' : 'none';
+    const ind = document.getElementById('step-ind-' + i);
+    ind.classList.remove('active','done');
+    if (i < n) ind.classList.add('done');
+    else if (i === n) ind.classList.add('active');
+  });
+  // update done checkmarks
+  [1,2,3].forEach(i => {
+    const num = document.querySelector('#step-ind-' + i + ' .ec-step-num');
+    if (i < n) num.innerHTML = '<i class="fas fa-check"></i>';
+    else num.textContent = i;
+  });
+}
+
+function renderCategories() {
+  const grid = document.getElementById('categoryGrid');
+  grid.innerHTML = CATEGORIES.map(cat => `
+    <div class="ec-cat-card" onclick="selectCategory('${cat.value}', '${cat.label}')">
+      <div class="ec-cat-icon" style="color:${cat.color};background:${cat.color}18;">
+        <i class="fas ${cat.icon}"></i>
+      </div>
+      <div class="ec-cat-name">${cat.label}</div>
+      <div class="ec-cat-count">${ITEMS[cat.value].length} item types</div>
+    </div>
+  `).join('');
+}
+
+function selectCategory(value, label) {
+  selectedCategory = value;
+  document.getElementById('hiddenCategory').value = value;
+  document.getElementById('selectedCatLabel').textContent = label;
+  renderItems(value);
+  goToStep(2);
+}
+
+function renderItems(category) {
+  const grid = document.getElementById('itemGrid');
+  const items = ITEMS[category] || [];
+  grid.innerHTML = items.map(item => `
+    <div class="ec-item-card" onclick="selectItem('${item}')">
+      <div class="ec-item-icon"><i class="fas ${ITEM_ICONS[item] || 'fa-tag'}"></i></div>
+      <div class="ec-item-name">${item}</div>
+    </div>
+  `).join('');
+}
+
+function selectItem(item) {
+  selectedItemType = item;
+  document.getElementById('hiddenItemType').value = item;
+  // Build badge
+  const catObj = CATEGORIES.find(c => c.value === selectedCategory);
+  document.getElementById('selectionBadge').innerHTML = `
+    <span class="ec-badge"><i class="fas ${catObj ? catObj.icon : 'fa-tag'}"></i> ${selectedCategory}</span>
+    <span class="ec-badge" style="background:var(--success);"><i class="fas ${ITEM_ICONS[item] || 'fa-tag'}"></i> ${item}</span>
+  `;
+  goToStep(3);
+}
+
+// On load
+renderCategories();
+
+// If form had validation errors, restore step 3 with previous values
+if (window.__formHasErrors) {
+  const cat = '{{ form.category.value }}';
+  const itype = '{{ form.item_type.value }}';
+  if (cat) {
+    selectedCategory = cat;
+    document.getElementById('hiddenCategory').value = cat;
+    const catObj = CATEGORIES.find(c => c.value === cat);
+    if (catObj) document.getElementById('selectedCatLabel').textContent = catObj.label;
+    renderItems(cat);
+  }
+  if (itype) {
+    selectedItemType = itype;
+    document.getElementById('hiddenItemType').value = itype;
+    const catObj = CATEGORIES.find(c => c.value === cat);
+    document.getElementById('selectionBadge').innerHTML = `
+      <span class="ec-badge"><i class="fas ${catObj ? catObj.icon : 'fa-tag'}"></i> ${cat}</span>
+      <span class="ec-badge" style="background:var(--success);"><i class="fas ${ITEM_ICONS[itype] || 'fa-tag'}"></i> ${itype}</span>
+    `;
+  }
+  goToStep(3);
+}
+</script>
+{% endblock %}
