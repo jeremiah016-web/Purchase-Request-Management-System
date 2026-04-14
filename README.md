@@ -222,18 +222,18 @@ Purchase-Request-Management-System/
 
 ## 📸 Screenshots
 
-| Screen | Description |
-|--------|-------------|
-| Landing Page | Public home with features and contact info |
-| Requester Dashboard | PR list with payment status and Pay/Track buttons |
-| PR Creation Step 1 | Category cards grid (e-commerce style) |
-| PR Creation Step 2 | Item type grid with icons |
-| PR Creation Step 3 | Details form with selected category badge |
-| Payment Page | Order summary + UPI/Card/NetBanking/Wallet |
-| Tracking Page | Live timeline with real-time status updates |
-| Vendor Dashboard | Ready-to-ship orders, payment account, available PRs |
-| Ship Order | Tracking number, carrier, expected delivery date |
-| Admin Dashboard | System-wide stats, recent PRs, vendor approvals |
+<h3>Demo</h3>
+
+<h4> Landing Page <h4> <p>Public home with features and contact info</p>
+<h4> Requester Dashboard <h4> <p>PR list with payment status and Pay/Track buttons </p>
+<h4>PR Creation Step 1 <h4> <p>Category cards grid (e-commerce style) </p>
+<h4> PR Creation Step 2<h4> <p>Item type grid with icons </p>
+<h4> PR Creation Step 3<h4> <p>Details form with selected category badge</p>
+<h4>Payment Page <h4> <p>Order summary + UPI/Card/NetBanking/Wallet</p>
+<h4> Tracking Page <h4> <p>Live timeline with real-time status updates </p>
+<h4> Vendor Dashboard<h4><p>Ready-to-ship orders, payment account, available PRs </p>
+<h4>Ship Order<h4><p>Tracking number, carrier, expected delivery date </p>
+<h4>Admin Dashboard <p>System-wide stats, recent PRs, vendor approvals </p>
 
 ---
 
@@ -255,7 +255,7 @@ python-dotenv==1.2.2
 **Developer:** Jeremiah George
 **Institution:** College of Engineering Poonjar
 **Location:** Poonjar, Kottayam, Kerala – 686582
-**Contact:** info@cepoonjar.ac.in | +91 4828 278278
+**Contact:** jeremiahgeorge016@gmail.com | +91 9031281701
 
 ---
 
